@@ -186,7 +186,8 @@ class NewsPipeline:
                 'openai_model': settings.OPENAI_MODEL,
                 'embedding_model': settings.OPENAI_EMBEDDING_MODEL,
                 'collection_name': settings.CHROMADB_COLLECTION_NAME,
-                'similarity_threshold': settings.SIMILARITY_THRESHOLD
+                'similarity_threshold': settings.SIMILARITY_THRESHOLD,
+                'fallback_only_mode': settings.USE_FALLBACK_ONLY
             }
         })
         
@@ -289,8 +290,11 @@ class NewsPipeline:
         health = {}
         
         try:
-            # Check OpenAI connection
-            health['openai'] = bool(settings.OPENAI_API_KEY)
+            # Check OpenAI connection (not required in fallback-only mode)
+            if settings.USE_FALLBACK_ONLY:
+                health['openai'] = True  # Not needed in fallback mode
+            else:
+                health['openai'] = bool(settings.OPENAI_API_KEY)
         except:
             health['openai'] = False
         

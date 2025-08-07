@@ -31,14 +31,33 @@ class AIsummarizer:
         """
         Generate summary and topics for an article.
         
+        Uses OpenAI GPT for high-quality AI summarization by default. When USE_FALLBACK_ONLY
+        environment variable is enabled, bypasses AI calls entirely for development/testing
+        purposes and uses basic text processing instead.
+        
         Args:
             article: Article object to summarize
             
         Returns:
             Tuple of (summary, topics_list)
+            
+        Note:
+            Fallback-only mode is intended for:
+            - Development and testing without API costs
+            - CI/CD pipelines that don't require API keys
+            - Offline environments or demo scenarios
+            - Cost control during development
         """
         try:
             logger.info(f"Summarizing article: {article.title[:50]}...")
+            
+            # Check if fallback-only mode is enabled (for development/testing purposes)
+            # This bypasses AI calls entirely to avoid API costs during development
+            if settings.USE_FALLBACK_ONLY:
+                logger.info("Using fallback-only mode (AI summarization disabled)")
+                fallback_summary = self._create_fallback_summary(article)
+                fallback_topics = self._extract_fallback_topics(article)
+                return fallback_summary, fallback_topics
             
             # Prepare the content for summarization
             content = self._prepare_content(article)
@@ -240,17 +259,83 @@ JSON format:
         
         return summary
     
+    def _extract_fallback_topics(self, article: Article) -> List[str]:
+        """
+        Extract basic topics from article when AI is disabled.
+        
+        This method provides simple keyword extraction for development and testing
+        purposes when USE_FALLBACK_ONLY mode is enabled. It uses basic text processing
+        techniques instead of AI-powered topic identification.
+        
+        Args:
+            article: Article to extract topics from
+            
+        Returns:
+            List of basic topics extracted from title and content
+            
+        Note:
+            This is a simplified approach for testing/development. Production usage
+            should rely on AI-powered topic extraction for better quality results.
+        """
+        import re
+        from collections import Counter
+        
+        # Combine title and first paragraph for topic extraction
+        text = f"{article.title} {article.body[:500]}".lower()
+        
+        # Remove common stop words and extract meaningful words
+        stop_words = {
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+            'from', 'as', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+            'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must',
+            'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they',
+            'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'our', 'their',
+            'said', 'says', 'can', 'one', 'two', 'new', 'also', 'more', 'than', 'only',
+            'after', 'before', 'when', 'where', 'why', 'how', 'what', 'who', 'which'
+        }
+        
+        # Extract words (3+ characters, alphabetic)
+        words = re.findall(r'\b[a-z]{3,}\b', text)
+        meaningful_words = [word for word in words if word not in stop_words]
+        
+        # Get most common words as topics
+        word_counts = Counter(meaningful_words)
+        topics = [word for word, count in word_counts.most_common(5) if count > 1]
+        
+        # If no good topics found, try to extract from title
+        if not topics:
+            title_words = re.findall(r'\b[a-z]{3,}\b', article.title.lower())
+            topics = [word for word in title_words if word not in stop_words][:3]
+        
+        return topics[:settings.MAX_TOPICS]
+    
     def batch_summarize(self, articles: List[Article]) -> List[Tuple[str, List[str]]]:
         """
         Summarize multiple articles in batch.
+        
+        Processes articles using AI summarization by default, or fallback mode when
+        USE_FALLBACK_ONLY is enabled for development/testing purposes.
         
         Args:
             articles: List of articles to summarize
             
         Returns:
             List of (summary, topics) tuples
+            
+        Note:
+            In fallback-only mode, all articles are processed using basic text extraction
+            without any OpenAI API calls, making it suitable for testing and development.
         """
         results = []
+        
+        # Check if fallback-only mode is enabled (development/testing mode)
+        if settings.USE_FALLBACK_ONLY:
+            logger.info(f"Batch processing {len(articles)} articles in fallback-only mode")
+            for article in articles:
+                fallback_summary = self._create_fallback_summary(article)
+                fallback_topics = self._extract_fallback_topics(article)
+                results.append((fallback_summary, fallback_topics))
+            return results
         
         for article in articles:
             try:

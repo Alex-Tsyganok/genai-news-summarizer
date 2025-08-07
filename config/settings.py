@@ -31,6 +31,11 @@ class Settings:
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     
+    # Fallback Mode (Development/Testing)
+    # When enabled, bypasses all AI calls and uses basic text processing instead
+    # Useful for: development, testing, CI/CD, offline demos, cost control
+    USE_FALLBACK_ONLY: bool = os.getenv("USE_FALLBACK_ONLY", "false").lower() in ("true", "1", "yes")
+    
     @classmethod
     def get_openai_config(cls) -> Dict[str, Any]:
         """Get OpenAI configuration dictionary."""
