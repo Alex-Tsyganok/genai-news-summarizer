@@ -23,7 +23,16 @@ def check_python_version():
     if sys.version_info < (3, 8):
         print("❌ Python 3.8+ is required")
         return False
-    print(f"✅ Python {sys.version.split()[0]} detected")
+    
+    version_str = sys.version.split()[0]
+    print(f"✅ Python {version_str} detected")
+    
+    # Warning for Python 3.13+
+    if sys.version_info >= (3, 13):
+        print("⚠️  WARNING: Python 3.13+ may require additional setup for some packages")
+        print("   Recommended: Use Python 3.12.x for better compatibility with scientific libraries")
+        print("   If installation fails, consider downgrading or installing C++ Build Tools")
+    
     return True
 
 def create_directories():
@@ -91,8 +100,36 @@ def run_tests():
     else:
         print("❌ Some tests failed")
 
+def setup_virtual_environment():
+    """Guide user through virtual environment setup if needed."""
+    venv_path = Path("venv")
+    
+    if not venv_path.exists():
+        print("🔧 Creating virtual environment...")
+        result = subprocess.run([sys.executable, "-m", "venv", "venv"], 
+                              capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"❌ Failed to create virtual environment: {result.stderr}")
+            return False
+            
+        print("✅ Virtual environment created successfully!")
+        print("\n📝 To activate the virtual environment:")
+        print("   Windows: venv\\Scripts\\activate")
+        print("   macOS/Linux: source venv/bin/activate")
+        print("\nThen run this setup script again.")
+        return False
+    
+    return True
+
 def main():
     """Main setup function."""
+    print("🚀 AI News Summarizer Setup")
+    
+    # Check virtual environment
+    if not setup_virtual_environment():
+        return
+        
     if len(sys.argv) > 1 and sys.argv[1] == "test":
         run_tests()
     else:

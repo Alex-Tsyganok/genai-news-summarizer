@@ -5,9 +5,8 @@ import openai
 from typing import List, Tuple, Optional
 import json
 import re
-from langchain.llms import OpenAI
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from ..models import Article
 from config import settings, logger
@@ -23,7 +22,7 @@ class AIsummarizer:
         """Initialize the AI summarizer."""
         self.client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
         self.chat_model = ChatOpenAI(
-            openai_api_key=settings.OPENAI_API_KEY,
+            api_key=settings.OPENAI_API_KEY,
             model=settings.OPENAI_MODEL,
             temperature=0.3
         )
@@ -75,8 +74,8 @@ class AIsummarizer:
         # Combine title and body
         content = f"Title: {article.title}\n\nContent: {article.body}"
         
-        # Truncate if too long (GPT token limits)
-        max_chars = 8000  # Conservative estimate for token limits
+        # Truncate if too long (GPT token limits) - More aggressive for cost savings
+        max_chars = 2000  # Reduced from 8000 for cost savings
         if len(content) > max_chars:
             content = content[:max_chars] + "..."
         
@@ -92,24 +91,18 @@ class AIsummarizer:
         Returns:
             Dictionary with summary and topics
         """
-        system_prompt = """You are an expert news analyst. Analyze the provided news article and extract:
+        system_prompt = """You are a news analyst. Extract:
 
-1. A concise summary (2-3 sentences, max 200 words) that captures the key points
-2. A list of 2-5 main topics/keywords that represent the article's themes
+1. Summary (1-2 sentences, max 100 words)  
+2. Topics (2-4 keywords)
 
-Return your response as a JSON object with this exact format:
+JSON format:
 {
-  "summary": "Your summary here...",
-  "topics": ["topic1", "topic2", "topic3"]
-}
+  "summary": "Brief summary...",
+  "topics": ["topic1", "topic2"]
+}"""
 
-Focus on:
-- Key facts and developments
-- Main people, organizations, or entities involved
-- Important implications or outcomes
-- Clear, actionable topics that would help in semantic search"""
-
-        user_prompt = f"Please analyze this news article:\n\n{content}"
+        user_prompt = f"Analyze:\n\n{content[:2000]}..."  # Limit input size
         
         try:
             response = self.client.chat.completions.create(
@@ -119,7 +112,7 @@ Focus on:
                     {"role": "user", "content": user_prompt}
                 ],
                 temperature=0.3,
-                max_tokens=500
+                max_tokens=200  # Reduced from 500 to save costs
             )
             
             content_text = response.choices[0].message.content

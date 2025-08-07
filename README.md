@@ -46,7 +46,7 @@
 ```
 
 ### Technology Stack
-- **🐍 Python 3.8+**: Core programming language
+- **🐍 Python 3.8+**: Core programming language (3.12.x recommended for best compatibility)
 - **🔗 LangChain**: AI orchestration and prompt management
 - **🤖 OpenAI API**: GPT models for summarization and embeddings
 - **💾 ChromaDB**: Vector database for semantic storage
@@ -64,8 +64,21 @@
 git clone <repository-url>
 cd genai-news-summarizer
 
+# Create and activate virtual environment (RECOMMENDED)
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+.\venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
 # Install dependencies
 pip install -r requirements.txt
+
+# If you encounter build errors with Python 3.13, try:
+# python -m pip install --upgrade pip setuptools wheel
+# pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
@@ -84,7 +97,7 @@ streamlit run src/ui/app.py
 
 ```bash
 # Process articles
-python cli.py add https://example.com/article1 https://example.com/article2
+python cli.py add https://www.bbc.com/news/articles/c0k3700zljjo https://www.artificialintelligence-news.com/news/alan-turing-institute-humanities-are-key-future-of-ai
 
 # Search articles
 python cli.py search "artificial intelligence developments"
