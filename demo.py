@@ -80,21 +80,50 @@ def demonstrate_pipeline():
     if process_demo and sample_data:
         print_subsection("4. Article Processing Demo")
         
-        # Use first article for demo
-        demo_url = sample_data[0]['url']
-        print(f"📰 Processing: {demo_url}")
+        # Ask how many articles to process
+        max_articles = min(len(sample_data), 3)  # Limit to 3 for demo
+        num_to_process = input(f"\n📝 How many articles to process? (1-{max_articles}, or 'all'): ").strip()
+        
+        if num_to_process.lower() == 'all':
+            articles_to_process = max_articles
+        else:
+            try:
+                articles_to_process = min(int(num_to_process), max_articles)
+            except ValueError:
+                articles_to_process = 1
+        
+        print(f"\n📰 Processing {articles_to_process} sample articles...")
+        
+        # Process multiple articles
+        urls_to_process = [article['url'] for article in sample_data[:articles_to_process]]
         
         start_time = time.time()
-        success, info = pipeline.process_single_article(demo_url)
+        results = pipeline.process_articles(urls_to_process)
         processing_time = time.time() - start_time
         
-        if success:
-            print(f"✅ Successfully processed in {processing_time:.2f}s")
-            print(f"📰 Title: {info.get('title', 'N/A')}")
-            print(f"📝 Summary: {info.get('summary', 'N/A')[:150]}...")
-            print(f"🏷️ Topics: {', '.join(info.get('topics', []))}")
-        else:
-            print(f"❌ Processing failed: {info.get('error', 'Unknown error')}")
+        # Show results
+        print(f"\n📊 Processing Results:")
+        print(f"   ✅ Successful: {results['successful']}")
+        print(f"   ❌ Failed: {results['failed']}")
+        print(f"   ⏱️ Total Time: {processing_time:.2f}s")
+        print(f"   📈 Average Time: {processing_time/len(urls_to_process):.2f}s per article")
+        
+        if results['successful'] > 0:
+            print(f"\n📰 Successfully processed articles:")
+            for article in results['processed_articles']:
+                print(f"   - {article['title']}")
+                print(f"     Summary: {article['summary'][:100]}...")
+                print(f"     Topics: {', '.join(article['topics'])}")
+                print()
+        
+        if results['failed'] > 0:
+            print(f"\n❌ Failed articles:")
+            for error in results['errors']:
+                print(f"   - {error['url']}: {error['error']}")
+    
+    elif not process_demo:
+        print_subsection("4. Article Processing Demo")
+        print("⏭️ Skipping article processing demo")
     
     # Demonstrate search functionality
     print_subsection("5. Search Functionality Demo")

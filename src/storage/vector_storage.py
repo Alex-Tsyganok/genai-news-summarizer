@@ -315,6 +315,7 @@ class VectorStorage:
             'summary': article.summary or '',
             'topics': json.dumps(article.topics or []),
             'extracted_at': article.extracted_at.isoformat() if article.extracted_at else '',
+            'body': article.body or '',  # Include original article body
         }
         
         # Add original metadata if available
@@ -366,7 +367,10 @@ class VectorStorage:
                 'topics': topics,
                 'similarity_score': similarity_score,
                 'rank': i + 1,
-                'query': query
+                'query': query,
+                'extracted_at': metadata.get('extracted_at', ''),
+                'body': metadata.get('body', ''),  # Include original article body
+                'document_text': document  # Include the prepared document text used for search
             }
             
             formatted_results.append(formatted_result)

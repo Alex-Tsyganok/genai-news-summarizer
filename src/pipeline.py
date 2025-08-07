@@ -259,17 +259,22 @@ class NewsPipeline:
             
             elif format_type.lower() == 'csv':
                 output = io.StringIO()
-                fieldnames = ['title', 'summary', 'source_url', 'topics', 'extracted_at', 'similarity_score']
+                fieldnames = ['title', 'summary', 'source_url', 'topics', 'extracted_at', 'body_excerpt', 'similarity_score']
                 writer = csv.DictWriter(output, fieldnames=fieldnames)
                 writer.writeheader()
                 
                 for result in all_results:
+                    # Truncate body for CSV to keep it manageable
+                    body_text = result.get('body', '')
+                    body_excerpt = body_text[:500] + "..." if len(body_text) > 500 else body_text
+                    
                     row = {
                         'title': result.get('title', ''),
                         'summary': result.get('summary', ''),
                         'source_url': result.get('source_url', ''),
                         'topics': ', '.join(result.get('topics', [])),
                         'extracted_at': result.get('extracted_at', ''),
+                        'body_excerpt': body_excerpt.replace('\n', ' ').replace('\r', ''),
                         'similarity_score': result.get('similarity_score', 0)
                     }
                     writer.writerow(row)
@@ -293,6 +298,11 @@ class NewsPipeline:
                     lines.append(f"Summary: {result.get('summary', 'N/A')}")
                     lines.append(f"Topics: {', '.join(result.get('topics', []))}")
                     lines.append(f"Extracted: {result.get('extracted_at', 'N/A')}")
+                    lines.append("")
+                    lines.append("Original Article Text:")
+                    lines.append("-" * 40)
+                    body_text = result.get('body', 'N/A')
+                    lines.append(body_text)
                     lines.append("-" * 80)
                     lines.append("")
                 
