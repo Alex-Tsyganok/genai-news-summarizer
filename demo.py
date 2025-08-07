@@ -8,6 +8,9 @@ import time
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Load environment variables first
+load_dotenv()
+
 # Add the parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -25,7 +28,6 @@ def print_subsection(title):
 
 def demonstrate_pipeline():
     """Run a comprehensive demonstration of the pipeline."""
-    load_dotenv()
     
     print_section("AI News Summarizer - Complete Demonstration")
     
