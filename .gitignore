@@ -1,0 +1,133 @@
+# Environment Variables
+.env
+.env.local
+.env.production
+.env.test
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# AI News Summarizer specific data directories
+data/chromadb/
+data/exports/
+data/cache/
+test_data/chromadb/
+*.db
+*.sqlite3
+*.chroma
+
+# OpenAI API cache
+.openai_cache/
+
+# LangChain cache
+.langchain_cache/
+
+# Streamlit cache
+.streamlit/
+
+# Article exports and temporary files
+exports/
+*.json.tmp
+*.csv.tmp
+articles_*.json
+articles_*.csv
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and debugging
+*.log
+logs/
+debug.log
+error.log
+pipeline.log
+
+# Test coverage and testing
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# Package files
+*.egg
+*.egg-info
+.installed.cfg
+
+# Documentation builds
+docs/_build/
+site/
+
+# Media files (if any downloaded articles contain images)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.pdf
+downloads/
+
+# Backup files
+*.bak
+*.backup
+*~

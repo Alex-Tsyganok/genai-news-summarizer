@@ -1,0 +1,17 @@
+[
+    {
+        "url": "https://www.bbc.com/news/technology-64382723",
+        "title": "ChatGPT banned in Italy over privacy concerns",
+        "expected_topics": ["chatgpt", "privacy", "italy", "ai", "technology"]
+    },
+    {
+        "url": "https://techcrunch.com/2023/03/30/openai-gpt-4/",
+        "title": "OpenAI announces GPT-4 with improved capabilities",
+        "expected_topics": ["openai", "gpt-4", "ai", "machine learning", "technology"]
+    },
+    {
+        "url": "https://www.reuters.com/technology/ai-regulation-2023/",
+        "title": "EU proposes new AI regulations for tech companies",
+        "expected_topics": ["ai regulation", "eu", "technology", "policy", "artificial intelligence"]
+    }
+]

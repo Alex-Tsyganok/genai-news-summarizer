@@ -1,0 +1,318 @@
+"""
+Main pipeline for news processing and search.
+"""
+import time
+from typing import List, Dict, Any, Tuple
+from datetime import datetime
+
+from .models import Article, ProcessingResult, SearchResult
+from .extractors import NewsExtractor
+from .summarizers import AIsummarizer
+from .storage import VectorStorage
+from .search import SemanticSearcher
+from config import settings, logger
+
+class NewsPipeline:
+    """
+    Main pipeline that orchestrates news extraction, summarization, and search.
+    
+    This class provides a high-level interface for the entire news processing workflow.
+    """
+    
+    def __init__(self):
+        """Initialize the news pipeline with all components."""
+        logger.info("Initializing News Pipeline...")
+        
+        # Initialize components
+        self.extractor = NewsExtractor()
+        self.summarizer = AIsummarizer()
+        self.storage = VectorStorage()
+        self.searcher = SemanticSearcher(self.storage)
+        
+        logger.info("News Pipeline initialized successfully")
+    
+    def process_articles(self, urls: List[str]) -> Dict[str, Any]:
+        """
+        Process a list of article URLs through the complete pipeline.
+        
+        Args:
+            urls: List of article URLs to process
+            
+        Returns:
+            Dictionary with processing results and statistics
+        """
+        start_time = time.time()
+        logger.info(f"Processing {len(urls)} articles...")
+        
+        results = {
+            'total_urls': len(urls),
+            'successful': 0,
+            'failed': 0,
+            'errors': [],
+            'processed_articles': [],
+            'processing_time': 0
+        }
+        
+        for i, url in enumerate(urls, 1):
+            logger.info(f"Processing article {i}/{len(urls)}: {url}")
+            
+            try:
+                # Step 1: Extract article content
+                extraction_result = self.extractor.extract_article(url)
+                
+                if not extraction_result.success:
+                    results['failed'] += 1
+                    results['errors'].append({
+                        'url': url,
+                        'step': 'extraction',
+                        'error': extraction_result.error
+                    })
+                    continue
+                
+                article = extraction_result.article
+                
+                # Step 2: Generate summary and topics
+                try:
+                    summary, topics = self.summarizer.summarize_article(article)
+                    article.summary = summary
+                    article.topics = topics
+                except Exception as e:
+                    logger.warning(f"Summarization failed for {url}: {e}")
+                    article.summary = self.summarizer._create_fallback_summary(article)
+                    article.topics = []
+                
+                # Step 3: Store in vector database
+                storage_success = self.storage.store_article(article)
+                
+                if storage_success:
+                    results['successful'] += 1
+                    results['processed_articles'].append({
+                        'url': url,
+                        'title': article.title,
+                        'summary': article.summary,
+                        'topics': article.topics
+                    })
+                else:
+                    results['failed'] += 1
+                    results['errors'].append({
+                        'url': url,
+                        'step': 'storage',
+                        'error': 'Failed to store in vector database'
+                    })
+                
+            except Exception as e:
+                results['failed'] += 1
+                results['errors'].append({
+                    'url': url,
+                    'step': 'general',
+                    'error': str(e)
+                })
+                logger.error(f"Failed to process {url}: {e}")
+        
+        results['processing_time'] = time.time() - start_time
+        
+        logger.info(f"Pipeline processing completed: {results['successful']}/{len(urls)} successful")
+        return results
+    
+    def search(self, query: str, limit: int = None) -> List[SearchResult]:
+        """
+        Search for articles using natural language query.
+        
+        Args:
+            query: Natural language search query
+            limit: Maximum number of results to return
+            
+        Returns:
+            List of SearchResult objects
+        """
+        logger.info(f"Searching for: '{query}'")
+        return self.searcher.search(query, limit=limit)
+    
+    def search_by_topics(self, topics: List[str], limit: int = None) -> List[SearchResult]:
+        """
+        Search articles by specific topics.
+        
+        Args:
+            topics: List of topics to search for
+            limit: Maximum number of results
+            
+        Returns:
+            List of SearchResult objects
+        """
+        return self.searcher.search_by_topics(topics, limit=limit)
+    
+    def find_similar_articles(self, article_url: str, limit: int = 5) -> List[SearchResult]:
+        """
+        Find articles similar to a given article.
+        
+        Args:
+            article_url: URL of the reference article
+            limit: Number of similar articles to return
+            
+        Returns:
+            List of similar articles
+        """
+        return self.searcher.find_similar_articles(article_url, limit=limit)
+    
+    def get_trending_topics(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Get trending topics from stored articles.
+        
+        Args:
+            limit: Maximum number of topics to return
+            
+        Returns:
+            List of trending topics with counts
+        """
+        return self.searcher.get_trending_topics(limit=limit)
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """
+        Get pipeline statistics and information.
+        
+        Returns:
+            Dictionary with pipeline statistics
+        """
+        stats = self.storage.get_collection_stats()
+        
+        stats.update({
+            'pipeline_components': {
+                'extractor': 'NewsExtractor',
+                'summarizer': 'AIsummarizer',
+                'storage': 'VectorStorage (ChromaDB)',
+                'searcher': 'SemanticSearcher'
+            },
+            'configuration': {
+                'openai_model': settings.OPENAI_MODEL,
+                'embedding_model': settings.OPENAI_EMBEDDING_MODEL,
+                'collection_name': settings.CHROMADB_COLLECTION_NAME,
+                'similarity_threshold': settings.SIMILARITY_THRESHOLD
+            }
+        })
+        
+        return stats
+    
+    def process_single_article(self, url: str) -> Tuple[bool, Dict[str, Any]]:
+        """
+        Process a single article through the pipeline.
+        
+        Args:
+            url: Article URL to process
+            
+        Returns:
+            Tuple of (success, result_info)
+        """
+        try:
+            result = self.process_articles([url])
+            
+            success = result['successful'] > 0
+            info = {
+                'url': url,
+                'processing_time': result['processing_time'],
+                'success': success
+            }
+            
+            if success and result['processed_articles']:
+                info.update(result['processed_articles'][0])
+            elif result['errors']:
+                info['error'] = result['errors'][0]['error']
+            
+            return success, info
+            
+        except Exception as e:
+            return False, {'url': url, 'error': str(e)}
+    
+    def export_articles(self, format_type: str = 'json') -> str:
+        """
+        Export all stored articles in the specified format.
+        
+        Args:
+            format_type: Export format ('json', 'csv')
+            
+        Returns:
+            Exported data as string
+        """
+        try:
+            # Get all articles (simplified approach)
+            all_results = self.storage.search_articles("", limit=1000)
+            
+            if format_type.lower() == 'json':
+                import json
+                return json.dumps(all_results, indent=2, default=str)
+            
+            elif format_type.lower() == 'csv':
+                import csv
+                import io
+                
+                output = io.StringIO()
+                if all_results:
+                    fieldnames = ['title', 'summary', 'source_url', 'topics', 'similarity_score']
+                    writer = csv.DictWriter(output, fieldnames=fieldnames)
+                    writer.writeheader()
+                    
+                    for result in all_results:
+                        row = {
+                            'title': result.get('title', ''),
+                            'summary': result.get('summary', ''),
+                            'source_url': result.get('source_url', ''),
+                            'topics': ', '.join(result.get('topics', [])),
+                            'similarity_score': result.get('similarity_score', 0)
+                        }
+                        writer.writerow(row)
+                
+                return output.getvalue()
+            
+            else:
+                raise ValueError(f"Unsupported format: {format_type}")
+                
+        except Exception as e:
+            logger.error(f"Failed to export articles: {e}")
+            return ""
+    
+    def reset_storage(self) -> bool:
+        """
+        Reset the vector storage (delete all articles).
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        logger.warning("Resetting article storage...")
+        return self.storage.reset_collection()
+    
+    def health_check(self) -> Dict[str, bool]:
+        """
+        Perform health check on all pipeline components.
+        
+        Returns:
+            Dictionary with component health status
+        """
+        health = {}
+        
+        try:
+            # Check OpenAI connection
+            health['openai'] = bool(settings.OPENAI_API_KEY)
+        except:
+            health['openai'] = False
+        
+        try:
+            # Check ChromaDB
+            stats = self.storage.get_collection_stats()
+            health['chromadb'] = stats['total_articles'] >= 0
+        except:
+            health['chromadb'] = False
+        
+        try:
+            # Check extractor
+            health['extractor'] = hasattr(self.extractor, 'extract_article')
+        except:
+            health['extractor'] = False
+        
+        try:
+            # Check summarizer
+            health['summarizer'] = hasattr(self.summarizer, 'summarize_article')
+        except:
+            health['summarizer'] = False
+        
+        health['overall'] = all(health.values())
+        
+        return health
