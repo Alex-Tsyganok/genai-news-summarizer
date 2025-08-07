@@ -115,6 +115,14 @@ if len(content) > 8000:
 - `examples/` - Working demonstrations, not documentation
 - `tests/` - Component-focused with real integration tests
 
+### Documentation & Research
+- `docs/` - **Research documentation and analysis** (Required)
+  - All research findings must be documented in markdown files
+  - Include technical investigations, metric research, algorithm analysis
+  - Track decision rationales and implementation considerations
+  - Use clear file naming: `{topic}-research.md`, `{feature}-analysis.md`
+  - Example: `advanced-news-metrics-research.md`, `vector-embedding-comparison.md`
+
 ### Interface Files
 - `cli.py` - Full CLI with subcommands
 - `demo.py` - Interactive pipeline demonstration
@@ -134,6 +142,36 @@ if len(content) > 8000:
 
 ## Development Guidelines
 
+### Research Documentation Requirements
+**All research activities must be tracked in the `docs/` folder:**
+
+1. **Research Documents** - Create detailed markdown files for:
+   - Algorithm investigations and comparisons
+   - Metric analysis and validation studies
+   - Performance benchmarking results
+   - External API evaluations
+   - Technical feasibility assessments
+
+2. **Naming Convention**:
+   - `{topic}-research.md` for broad research areas
+   - `{component}-analysis.md` for specific component studies
+   - `{feature}-implementation-plan.md` for development planning
+
+3. **Required Sections** in research documents:
+   - **Overview**: Research objective and scope
+   - **Methodology**: How research was conducted
+   - **Findings**: Key discoveries and insights
+   - **Implementation Considerations**: Technical requirements
+   - **Cost-Benefit Analysis**: Resource implications
+   - **References**: Sources and further reading
+   - **Next Steps**: Action items and recommendations
+
+4. **Research Tracking**:
+   - Update research docs when findings change
+   - Cross-reference research in code comments
+   - Include research links in relevant pull requests
+   - Maintain research index in `docs/README.md`
+
 ### Commit Message Convention
 Follow this structured format for consistent commit history:
 
@@ -152,7 +190,8 @@ Follow this structured format for consistent commit history:
 - `data`: Vector storage, ChromaDB, or data model changes
 - `config`: Settings, environment, or configuration updates
 - `test`: Test additions or modifications
-- `docs`: Documentation updates
+- `docs`: Documentation updates (including research documents)
+- `research`: Research activities and analysis documentation
 - `refactor`: Code restructuring without functionality changes
 - `perf`: Performance improvements
 - `chore`: Dependencies, setup, or maintenance tasks
@@ -167,6 +206,8 @@ Follow this structured format for consistent commit history:
 - `cli`: Command-line interface
 - `config`: Configuration and settings
 - `models`: Data models and structures
+- `metrics`: Advanced metrics and analytics
+- `research`: Research documentation and analysis
 
 **Examples:**
 ```bash
@@ -176,11 +217,14 @@ ai(summarizer): optimize prompts for better topic extraction
 data(storage): implement batch article storage
 config: add similarity threshold environment variable
 test(pipeline): add comprehensive integration tests
+research(metrics): document advanced article analysis techniques
+docs: update API documentation with new endpoints
 ```
 
 **Body Guidelines:**
 - Explain the "why" behind changes
 - Reference issue numbers: `Fixes #123`
+- Reference research documents: `Based on research in docs/metrics-research.md`
 - Mention breaking changes: `BREAKING CHANGE: API updated`
 
 ### When Modifying Components
@@ -188,17 +232,21 @@ test(pipeline): add comprehensive integration tests
 2. **Summarizers**: Validate JSON parsing + fallback behavior
 3. **Storage**: Check batch operations and ID consistency
 4. **Search**: Verify similarity score calculations
+5. **Research**: Document findings in `docs/` before implementation
 
 ### Adding New Features
+- **Research First**: Document investigation in `docs/` folder
 - Follow the fallback pattern: primary method → backup → graceful failure
 - Add configuration to `settings.py` with environment variable support
 - Include in `health_check()` if external dependency
 - Update all three interfaces (Web, CLI, API) consistently
+- Reference research documentation in implementation comments
 
 ### Common Pitfalls
 - **API Keys**: Validate at runtime, not import time
 - **Vector Storage**: URLs as IDs can collide - use hash functions
 - **Streamlit**: Session state clearing requires `st.experimental_rerun()`
 - **ChromaDB**: Collections must exist before operations (auto-create pattern)
+- **Research Gap**: Don't implement without documented research rationale
 
-This system prioritizes **robustness over perfection** - every operation can gracefully handle failures while providing detailed diagnostics.
+This system prioritizes **robustness over perfection** - every operation can gracefully handle failures while providing detailed diagnostics. All technical decisions should be backed by documented research in the `docs/` folder.
