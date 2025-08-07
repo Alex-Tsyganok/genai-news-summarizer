@@ -75,7 +75,27 @@ python quick_db_view.py
 - CI/CD pipelines
 - Automated scripts
 
-### 3. 🔧 Direct ChromaDB Explorer (`explore_chromadb.py`)
+### 4. 🧹 Duplicate Cleanup Tool (`simple_cleanup.py`) 🆕
+
+**Newest addition** - Remove duplicate articles from your database while preserving the latest versions.
+
+```bash
+cd tools
+python simple_cleanup.py
+```
+
+**Features:**
+- Identifies duplicate articles by URL
+- Keeps the most recently extracted version
+- Interactive confirmation before cleanup
+- Detailed statistics and reporting
+- Safe operation with comprehensive logging
+
+**Best for:**
+- Cleaning up existing duplicates
+- Database maintenance
+- Optimizing storage space
+- Improving search quality
 
 **Low-level access** - Direct ChromaDB exploration without custom wrappers.
 
@@ -114,10 +134,19 @@ python inspect_db.py
 ```
 
 ### Troubleshooting ChromaDB
+
 ```bash
 # Low-level database inspection
 cd tools
 python explore_chromadb.py
+```
+
+### Clean Up Duplicates 🆕
+
+```bash
+# Remove duplicate articles while preserving latest versions
+cd tools
+python simple_cleanup.py
 ```
 
 ### Export Database for Backup

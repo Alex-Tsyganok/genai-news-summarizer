@@ -294,27 +294,33 @@ class NewsPipeline:
             if settings.USE_FALLBACK_ONLY:
                 health['openai'] = True  # Not needed in fallback mode
             else:
-                health['openai'] = bool(settings.OPENAI_API_KEY)
-        except:
+                # Check if API key exists and is not empty
+                api_key = settings.OPENAI_API_KEY
+                health['openai'] = bool(api_key and api_key.strip())
+        except Exception as e:
+            logger.error(f"OpenAI health check failed: {e}")
             health['openai'] = False
         
         try:
             # Check ChromaDB
             stats = self.storage.get_collection_stats()
             health['chromadb'] = stats['total_articles'] >= 0
-        except:
+        except Exception as e:
+            logger.error(f"ChromaDB health check failed: {e}")
             health['chromadb'] = False
         
         try:
             # Check extractor
             health['extractor'] = hasattr(self.extractor, 'extract_article')
-        except:
+        except Exception as e:
+            logger.error(f"Extractor health check failed: {e}")
             health['extractor'] = False
         
         try:
             # Check summarizer
             health['summarizer'] = hasattr(self.summarizer, 'summarize_article')
-        except:
+        except Exception as e:
+            logger.error(f"Summarizer health check failed: {e}")
             health['summarizer'] = False
         
         health['overall'] = all(health.values())

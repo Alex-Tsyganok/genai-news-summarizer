@@ -10,9 +10,6 @@ from dotenv import load_dotenv
 # Add the parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.pipeline import NewsPipeline
-from config import logger
-
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -24,6 +21,7 @@ Examples:
   python cli.py search "artificial intelligence"
   python cli.py stats
   python cli.py export articles.json
+  python cli.py health
         """
     )
     
@@ -59,8 +57,12 @@ Examples:
         parser.print_help()
         sys.exit(1)
     
-    # Load environment variables
+    # Load environment variables FIRST
     load_dotenv()
+    
+    # Now import after environment is loaded
+    from src.pipeline import NewsPipeline
+    from config import logger
     
     # Initialize pipeline
     try:
@@ -96,7 +98,7 @@ Examples:
         print(f"❌ Error: {e}")
         sys.exit(1)
 
-def cmd_add_articles(pipeline: NewsPipeline, urls: list):
+def cmd_add_articles(pipeline, urls: list):
     """Add articles command."""
     print(f"Processing {len(urls)} articles...")
     
@@ -117,7 +119,7 @@ def cmd_add_articles(pipeline: NewsPipeline, urls: list):
         for error in results['errors']:
             print(f"  - {error['url']}: {error['error']}")
 
-def cmd_search(pipeline: NewsPipeline, query: str, limit: int):
+def cmd_search(pipeline, query: str, limit: int):
     """Search command."""
     print(f"Searching for: '{query}'...")
     
@@ -137,7 +139,7 @@ def cmd_search(pipeline: NewsPipeline, query: str, limit: int):
         if result.article.topics:
             print(f"   Topics: {', '.join(result.article.topics[:5])}")
 
-def cmd_stats(pipeline: NewsPipeline):
+def cmd_stats(pipeline):
     """Statistics command."""
     stats = pipeline.get_statistics()
     
@@ -153,7 +155,7 @@ def cmd_stats(pipeline: NewsPipeline):
         for i, topic_info in enumerate(trending, 1):
             print(f"  {i}. {topic_info['topic']} ({topic_info['count']} articles)")
 
-def cmd_export(pipeline: NewsPipeline, filename: str, format_type: str):
+def cmd_export(pipeline, filename: str, format_type: str):
     """Export command."""
     print(f"Exporting articles to {filename} ({format_type})...")
     
@@ -168,7 +170,7 @@ def cmd_export(pipeline: NewsPipeline, filename: str, format_type: str):
     
     print(f"✅ Exported to {filename}")
 
-def cmd_health(pipeline: NewsPipeline):
+def cmd_health(pipeline):
     """Health check command."""
     print("🔧 Checking pipeline health...")
     
@@ -182,7 +184,7 @@ def cmd_health(pipeline: NewsPipeline):
     overall_status = "Healthy" if health['overall'] else "Unhealthy"
     print(f"\n🏥 Overall Status: {overall_status}")
 
-def cmd_reset(pipeline: NewsPipeline, confirm: bool):
+def cmd_reset(pipeline, confirm: bool):
     """Reset command."""
     if not confirm:
         print("⚠️ This will delete all stored articles!")
