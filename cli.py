@@ -18,9 +18,11 @@ def main():
         epilog="""
 Examples:
   python cli.py add https://example.com/news-article
-  python cli.py search "artificial intelligence"
+  python cli.py search "artificial intelligence" --limit 5
   python cli.py stats
-  python cli.py export articles.json
+  python cli.py export --format json
+  python cli.py export my_articles --format csv
+  python cli.py export --format txt --console
   python cli.py health
         """
     )
@@ -40,9 +42,10 @@ Examples:
     stats_parser = subparsers.add_parser('stats', help='Show collection statistics')
     
     # Export command
-    export_parser = subparsers.add_parser('export', help='Export articles')
-    export_parser.add_argument('filename', help='Output filename')
-    export_parser.add_argument('--format', choices=['json', 'csv'], default='json', help='Export format')
+    export_parser = subparsers.add_parser('export', help='Export articles to data/exports folder')
+    export_parser.add_argument('filename', nargs='?', help='Output filename (optional, auto-generated if not provided)')
+    export_parser.add_argument('--format', choices=['json', 'csv', 'txt'], default='json', help='Export format')
+    export_parser.add_argument('--console', action='store_true', help='Print to console instead of file')
     
     # Health check command
     health_parser = subparsers.add_parser('health', help='Check pipeline health')
@@ -82,7 +85,7 @@ Examples:
         elif args.command == 'stats':
             cmd_stats(pipeline)
         elif args.command == 'export':
-            cmd_export(pipeline, args.filename, args.format)
+            cmd_export(pipeline, args.filename, args.format, args.console)
         elif args.command == 'health':
             cmd_health(pipeline)
         elif args.command == 'reset':
@@ -155,20 +158,39 @@ def cmd_stats(pipeline):
         for i, topic_info in enumerate(trending, 1):
             print(f"  {i}. {topic_info['topic']} ({topic_info['count']} articles)")
 
-def cmd_export(pipeline, filename: str, format_type: str):
-    """Export command."""
-    print(f"Exporting articles to {filename} ({format_type})...")
-    
-    data = pipeline.export_articles(format_type)
-    
-    if not data:
-        print("No data to export.")
-        return
-    
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(data)
-    
-    print(f"✅ Exported to {filename}")
+def cmd_export(pipeline, filename: str, format_type: str, console_output: bool = False):
+    """Export command with enhanced functionality."""
+    if console_output:
+        print(f"📤 Exporting articles to console ({format_type})...")
+        data = pipeline.export_articles(format_type, to_file=False)
+        
+        if not data:
+            print("❌ No data to export.")
+            return
+        
+        print("\n" + "="*80)
+        print(data)
+        print("="*80)
+        print(f"✅ Export completed ({format_type} format)")
+    else:
+        print(f"📤 Exporting articles to data/exports folder ({format_type})...")
+        
+        # Use the new export_articles with file writing capability
+        result = pipeline.export_articles(format_type, to_file=True, filename=filename)
+        
+        if not result:
+            print("❌ No data to export or export failed.")
+            return
+        
+        print(f"✅ Articles exported to: {result}")
+        
+        # Show summary
+        try:
+            import os
+            file_size = os.path.getsize(result)
+            print(f"📊 File size: {file_size:,} bytes")
+        except Exception:
+            pass
 
 def cmd_health(pipeline):
     """Health check command."""

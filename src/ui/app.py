@@ -410,29 +410,137 @@ def show_analytics_page():
         
         # Export functionality
         st.subheader("📤 Export Data")
-        col1, col2 = st.columns(2)
         
+        # Export format selection
+        export_format = st.selectbox(
+            "Choose export format:",
+            ["JSON", "CSV", "TXT"],
+            help="Select the format for exporting your articles"
+        )
+        
+        # Export destination
+        export_destination = st.radio(
+            "Export to:",
+            ["Download (Browser)", "Save to data/exports folder"],
+            help="Choose where to save the exported file"
+        )
+        
+        # Custom filename for file export
+        custom_filename = None
+        if export_destination == "Save to data/exports folder":
+            custom_filename = st.text_input(
+                "Custom filename (optional):",
+                placeholder="my_articles",
+                help="Leave empty for auto-generated timestamp filename"
+            )
+        
+        col1, col2, col3 = st.columns(3)
+        
+        # Export buttons
         with col1:
-            if st.button("Export as JSON"):
-                export_data = st.session_state.pipeline.export_articles('json')
-                if export_data:
-                    st.download_button(
-                        label="Download JSON",
-                        data=export_data,
-                        file_name=f"articles_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                        mime="application/json"
-                    )
+            if st.button(f"📥 Export as {export_format}", use_container_width=True):
+                format_lower = export_format.lower()
+                
+                try:
+                    if export_destination == "Download (Browser)":
+                        # Console export for download
+                        export_data = st.session_state.pipeline.export_articles(format_lower, to_file=False)
+                        
+                        if export_data:
+                            # Determine MIME type
+                            mime_types = {
+                                'json': 'application/json',
+                                'csv': 'text/csv',
+                                'txt': 'text/plain'
+                            }
+                            
+                            st.download_button(
+                                label=f"📥 Download {export_format}",
+                                data=export_data,
+                                file_name=f"articles_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format_lower}",
+                                mime=mime_types.get(format_lower, 'text/plain'),
+                                key=f"download_{format_lower}"
+                            )
+                            st.success(f"✅ {export_format} export ready for download!")
+                        else:
+                            st.error("❌ No data available for export")
+                    
+                    else:
+                        # File export to data/exports
+                        filename = custom_filename if custom_filename.strip() else None
+                        file_path = st.session_state.pipeline.export_articles(
+                            format_lower, 
+                            to_file=True, 
+                            filename=filename
+                        )
+                        
+                        if file_path:
+                            st.success(f"✅ Articles exported to: `{file_path}`")
+                            
+                            # Show file info
+                            try:
+                                import os
+                                file_size = os.path.getsize(file_path)
+                                st.info(f"📊 File size: {file_size:,} bytes")
+                            except Exception:
+                                pass
+                        else:
+                            st.error("❌ Export failed - no data available")
+                            
+                except Exception as e:
+                    st.error(f"❌ Export failed: {e}")
         
         with col2:
-            if st.button("Export as CSV"):
-                export_data = st.session_state.pipeline.export_articles('csv')
-                if export_data:
-                    st.download_button(
-                        label="Download CSV",
-                        data=export_data,
-                        file_name=f"articles_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                        mime="text/csv"
-                    )
+            if st.button("📋 Preview Export", use_container_width=True):
+                try:
+                    preview_data = st.session_state.pipeline.export_articles(export_format.lower(), to_file=False)
+                    
+                    if preview_data:
+                        if export_format.lower() == 'txt':
+                            st.text_area(
+                                "Preview:",
+                                value=preview_data[:2000] + ("..." if len(preview_data) > 2000 else ""),
+                                height=300,
+                                disabled=True
+                            )
+                        else:
+                            st.code(
+                                preview_data[:2000] + ("..." if len(preview_data) > 2000 else ""),
+                                language=export_format.lower()
+                            )
+                        
+                        st.info(f"📊 Preview showing first 2000 characters of {len(preview_data):,} total")
+                    else:
+                        st.error("❌ No data available for preview")
+                        
+                except Exception as e:
+                    st.error(f"❌ Preview failed: {e}")
+        
+        with col3:
+            if st.button("📁 View Export Files", use_container_width=True):
+                try:
+                    import os
+                    exports_dir = "data/exports"
+                    
+                    if os.path.exists(exports_dir):
+                        files = [f for f in os.listdir(exports_dir) if f.endswith(('.json', '.csv', '.txt'))]
+                        
+                        if files:
+                            st.subheader("📁 Available Export Files:")
+                            for file in sorted(files, reverse=True):
+                                file_path = os.path.join(exports_dir, file)
+                                try:
+                                    file_size = os.path.getsize(file_path)
+                                    st.write(f"• `{file}` ({file_size:,} bytes)")
+                                except Exception:
+                                    st.write(f"• `{file}`")
+                        else:
+                            st.info("No export files found in data/exports folder")
+                    else:
+                        st.info("Exports folder doesn't exist yet")
+                        
+                except Exception as e:
+                    st.error(f"❌ Failed to list export files: {e}")
     
     except Exception as e:
         st.error(f"Failed to load analytics: {e}")

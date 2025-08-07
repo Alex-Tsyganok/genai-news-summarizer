@@ -152,21 +152,50 @@ def demonstrate_pipeline():
     
     # Export demo
     print_subsection("8. Data Export Demo")
-    print("📤 Export formats available:")
+    print("📤 Testing export functionality:")
     
-    # JSON export
+    # Test console exports (brief)
+    print("\n📋 Console Export Preview:")
     json_data = pipeline.export_articles('json')
     if json_data:
         print(f"   ✅ JSON: {len(json_data)} characters")
     else:
         print("   ❌ JSON: No data available")
     
-    # CSV export
     csv_data = pipeline.export_articles('csv')
     if csv_data:
         print(f"   ✅ CSV: {len(csv_data.split('\\n'))} lines")
     else:
         print("   ❌ CSV: No data available")
+    
+    txt_data = pipeline.export_articles('txt')
+    if txt_data:
+        print(f"   ✅ TXT: {len(txt_data)} characters")
+    else:
+        print("   ❌ TXT: No data available")
+    
+    # Test file exports
+    print("\n💾 File Export Test:")
+    try:
+        # Export to files in data/exports folder
+        json_file = pipeline.export_articles('json', to_file=True, filename='demo_export')
+        if json_file:
+            print(f"   ✅ JSON file: {json_file}")
+        
+        csv_file = pipeline.export_articles('csv', to_file=True, filename='demo_export')
+        if csv_file:
+            print(f"   ✅ CSV file: {csv_file}")
+            
+        txt_file = pipeline.export_articles('txt', to_file=True, filename='demo_export')
+        if txt_file:
+            print(f"   ✅ TXT file: {txt_file}")
+    except Exception as e:
+        print(f"   ❌ File export failed: {e}")
+    
+    print("\n📁 Available via CLI:")
+    print("   python cli.py export --format json")
+    print("   python cli.py export my_file --format csv")
+    print("   python cli.py export --format txt --console")
     
     # Final statistics
     print_subsection("9. Final Statistics")
@@ -185,6 +214,8 @@ def demonstrate_pipeline():
 ⌨️  Command Line:
    python cli.py add <urls>
    python cli.py search "your query"
+   python cli.py export --format json
+   python cli.py export my_file --format csv
    python cli.py stats
    
 📚 Python API:

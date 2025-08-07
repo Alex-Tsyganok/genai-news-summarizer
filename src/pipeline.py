@@ -223,48 +223,108 @@ class NewsPipeline:
         except Exception as e:
             return False, {'url': url, 'error': str(e)}
     
-    def export_articles(self, format_type: str = 'json') -> str:
+    def export_articles(self, format_type: str = 'json', to_file: bool = False, filename: str = None) -> str:
         """
         Export all stored articles in the specified format.
         
         Args:
-            format_type: Export format ('json', 'csv')
+            format_type: Export format ('json', 'csv', 'txt')
+            to_file: Whether to write to file in data folder
+            filename: Custom filename (optional, auto-generated if not provided)
             
         Returns:
-            Exported data as string
+            Exported data as string, or file path if written to file
         """
+        import os
+        import json
+        import csv
+        import io
+        from datetime import datetime
+        
         try:
             # Get all articles (simplified approach)
             all_results = self.storage.search_articles("", limit=1000)
             
+            if not all_results:
+                logger.warning("No articles found to export")
+                return ""
+            
+            # Generate content based on format
+            content = ""
+            file_extension = ""
+            
             if format_type.lower() == 'json':
-                import json
-                return json.dumps(all_results, indent=2, default=str)
+                content = json.dumps(all_results, indent=2, default=str)
+                file_extension = "json"
             
             elif format_type.lower() == 'csv':
-                import csv
-                import io
-                
                 output = io.StringIO()
-                if all_results:
-                    fieldnames = ['title', 'summary', 'source_url', 'topics', 'similarity_score']
-                    writer = csv.DictWriter(output, fieldnames=fieldnames)
-                    writer.writeheader()
-                    
-                    for result in all_results:
-                        row = {
-                            'title': result.get('title', ''),
-                            'summary': result.get('summary', ''),
-                            'source_url': result.get('source_url', ''),
-                            'topics': ', '.join(result.get('topics', [])),
-                            'similarity_score': result.get('similarity_score', 0)
-                        }
-                        writer.writerow(row)
+                fieldnames = ['title', 'summary', 'source_url', 'topics', 'extracted_at', 'similarity_score']
+                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer.writeheader()
                 
-                return output.getvalue()
+                for result in all_results:
+                    row = {
+                        'title': result.get('title', ''),
+                        'summary': result.get('summary', ''),
+                        'source_url': result.get('source_url', ''),
+                        'topics': ', '.join(result.get('topics', [])),
+                        'extracted_at': result.get('extracted_at', ''),
+                        'similarity_score': result.get('similarity_score', 0)
+                    }
+                    writer.writerow(row)
+                
+                content = output.getvalue()
+                file_extension = "csv"
+            
+            elif format_type.lower() == 'txt':
+                # Plain text format for readability
+                lines = []
+                lines.append(f"News Articles Export - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                lines.append("=" * 80)
+                lines.append(f"Total Articles: {len(all_results)}")
+                lines.append("=" * 80)
+                lines.append("")
+                
+                for i, result in enumerate(all_results, 1):
+                    lines.append(f"Article {i}:")
+                    lines.append(f"Title: {result.get('title', 'N/A')}")
+                    lines.append(f"URL: {result.get('source_url', 'N/A')}")
+                    lines.append(f"Summary: {result.get('summary', 'N/A')}")
+                    lines.append(f"Topics: {', '.join(result.get('topics', []))}")
+                    lines.append(f"Extracted: {result.get('extracted_at', 'N/A')}")
+                    lines.append("-" * 80)
+                    lines.append("")
+                
+                content = "\n".join(lines)
+                file_extension = "txt"
             
             else:
-                raise ValueError(f"Unsupported format: {format_type}")
+                raise ValueError(f"Unsupported format: {format_type}. Supported: json, csv, txt")
+            
+            # Write to file if requested
+            if to_file:
+                # Ensure data/exports directory exists
+                exports_dir = "data/exports"
+                os.makedirs(exports_dir, exist_ok=True)
+                
+                # Generate filename if not provided
+                if not filename:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"articles_export_{timestamp}.{file_extension}"
+                elif not filename.endswith(f".{file_extension}"):
+                    filename = f"{filename}.{file_extension}"
+                
+                file_path = os.path.join(exports_dir, filename)
+                
+                # Write content to file
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                
+                logger.info(f"Articles exported to: {file_path}")
+                return file_path
+            
+            return content
                 
         except Exception as e:
             logger.error(f"Failed to export articles: {e}")
