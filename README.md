@@ -161,6 +161,63 @@ The system supports various configurations in `config/settings.py`:
 - **Extraction**: Customize scraping parameters
 - **Search**: Adjust similarity thresholds
 
+## 🛠️ Database Tools
+
+The `tools/` directory contains utilities for database inspection and debugging:
+
+- **`tools/inspect_db.py`** - Interactive CLI for comprehensive database exploration
+- **`tools/quick_db_view.py`** - Fast overview of all database records  
+- **`tools/explore_chromadb.py`** - Direct ChromaDB access for troubleshooting
+
+```bash
+# Interactive database exploration
+cd tools
+python inspect_db.py
+
+# Quick database overview
+python quick_db_view.py
+
+# Direct ChromaDB inspection
+python explore_chromadb.py
+```
+
+See [`tools/README.md`](tools/README.md) for detailed documentation.
+
+## 📁 Project Structure
+
+```text
+genai-news-summarizer/
+├── 📄 README.md                  # Main project documentation
+├── 📄 requirements.txt           # Python dependencies
+├── 📄 setup.py                   # Environment setup script
+├── 📄 cli.py                     # Command-line interface
+├── 📄 demo.py                    # Interactive demonstration
+│
+├── 📁 src/                       # Core application code
+│   ├── 📄 pipeline.py            # Main orchestration pipeline
+│   ├── 📄 models.py              # Data models and structures
+│   ├── 📁 extractors/            # News extraction modules
+│   ├── 📁 summarizers/           # AI summarization modules
+│   ├── 📁 storage/               # Vector database operations
+│   ├── 📁 search/                # Semantic search implementation
+│   └── 📁 ui/                    # Streamlit web interface
+│
+├── 📁 config/                    # Configuration and settings
+│   ├── 📄 settings.py            # Environment variables and config
+│   └── 📄 logging_config.py      # Logging configuration
+│
+├── 📁 tools/                     # Database inspection utilities
+│   ├── 📄 README.md              # Tools documentation
+│   ├── 📄 inspect_db.py          # Interactive database explorer
+│   ├── 📄 quick_db_view.py       # Fast database overview
+│   └── 📄 explore_chromadb.py    # Direct ChromaDB access
+│
+├── 📁 tests/                     # Test suite
+├── 📁 examples/                  # Usage examples
+├── 📁 data/                      # Database and sample data
+└── 📁 docs/                      # Additional documentation
+```
+
 ## API Reference
 
 See detailed documentation in each module:
