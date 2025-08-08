@@ -5,6 +5,9 @@ import json
 from typing import Dict, Any, Tuple
 
 import openai
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema import StrOutputParser
 from ..models import Article, ProcessingResult
 from config import settings, logger
 
@@ -69,51 +72,60 @@ class AIConfidenceScorer:
     
     def _analyze_with_ai(self, content: str) -> Tuple[float, Dict[str, Any]]:
         """
-        Use OpenAI to analyze article authenticity.
+        Use OpenAI with LangChain to analyze article authenticity.
         
         Returns:
             Tuple of (confidence_score, detailed_analysis)
         """
+        # Create LangChain prompt template
         system_prompt = """You are an expert news article validator. 
-        Analyze the provided content and determine if it's a legitimate news article.
-        Consider factors like:
-        - Professional writing style and structure
-        - News-worthy content
-        - Objectivity and lack of promotional content
-        - Presence of typical news article elements
+            Analyze the provided content and determine if it's a legitimate news article.
+            Consider factors like:
+            - Professional writing style and structure
+            - News-worthy content
+            - Objectivity and lack of promotional content
+            - Presence of typical news article elements
+            
+            Return a JSON response with:
+            {{
+                "confidence_score": float (0-1),
+                "is_news_article": boolean,
+                "analysis": {{
+                    "style_score": float (0-1),
+                    "content_quality_score": float (0-1),
+                    "structure_score": float (0-1),
+                    "reasons": [str],
+                    "flags": [str]
+                }}
+            }}"""
+            
+        human_prompt = "Analyze this content: {input_content}"
         
-        Return a JSON response with:
-        {
-            "confidence_score": float (0-1),
-            "is_news_article": boolean,
-            "analysis": {
-                "style_score": float (0-1),
-                "content_quality_score": float (0-1),
-                "structure_score": float (0-1),
-                "reasons": [str],
-                "flags": [str]
-            }
-        }"""
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            ("human", human_prompt)
+        ])
+
+        # Create chain with LangChain
+        model = ChatOpenAI(
+            model=self.openai_config['model'],
+            temperature=0.1,  # Low temperature for consistent analysis
+            model_kwargs={"response_format": {"type": "json_object"}}
+        )
+        chain = prompt | model | StrOutputParser()
         
         try:
-            response = openai.chat.completions.create(
-                model=self.openai_config['model'],
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Analyze this content: {content}"}
-                ],
-                temperature=0.1,  # Low temperature for consistent analysis
-                response_format={"type": "json_object"}
-            )
+            # Execute chain with tracing
+            response = chain.invoke({"input_content": content})
             
             # Parse response
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(response)
             confidence_score = result['confidence_score']
             
             return confidence_score, result['analysis']
             
         except Exception as e:
-            logger.error(f"OpenAI API error: {str(e)}")
+            logger.error(f"LangChain/OpenAI API error: {str(e)}")
             # Return conservative default scores
             return 0.0, {
                 "error": str(e),

@@ -12,6 +12,13 @@ class Settings:
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
     OPENAI_EMBEDDING_MODEL: str = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-ada-002")
     
+    # LangSmith Configuration
+    LANGCHAIN_API_KEY: str = os.getenv("LANGCHAIN_API_KEY", "")
+    LANGCHAIN_PROJECT: str = os.getenv("LANGCHAIN_PROJECT", "genai-news-summarizer")
+    LANGCHAIN_ENDPOINT: str = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+    LANGCHAIN_TRACING_V2: str = os.getenv("LANGCHAIN_TRACING_V2", "true")
+    ENABLE_LANGSMITH: bool = os.getenv("ENABLE_LANGSMITH", "false").lower() in ("true", "1", "yes")
+    
     # ChromaDB Configuration
     CHROMADB_PERSIST_DIRECTORY: str = os.getenv("CHROMADB_PERSIST_DIRECTORY", "./data/chromadb")
     CHROMADB_COLLECTION_NAME: str = os.getenv("CHROMADB_COLLECTION_NAME", "news_articles")
@@ -62,6 +69,14 @@ class Settings:
         """Validate required configuration settings."""
         if not cls.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY is required")
+            
+        # Validate LangSmith configuration if enabled
+        if cls.ENABLE_LANGSMITH:
+            if not cls.LANGCHAIN_API_KEY:
+                raise ValueError("LANGCHAIN_API_KEY is required when ENABLE_LANGSMITH is true")
+            if not cls.LANGCHAIN_PROJECT:
+                raise ValueError("LANGCHAIN_PROJECT is required when ENABLE_LANGSMITH is true")
+                
         return True
 
 # Global settings instance

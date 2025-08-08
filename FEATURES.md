@@ -151,6 +151,20 @@ This document tracks the implemented features and capabilities of the AI News Su
 - **Error Tracking**: Detailed error reporting and tracking
 - **Performance Metrics**: Processing time and performance monitoring
 
+### ✅ LangSmith Observability 🆕
+
+- **Optional Tracing**: Built-in LangSmith integration for LLM operations
+- **Performance Analytics**:
+  - Request latency tracking
+  - Token usage monitoring
+  - Cost analysis per operation
+- **Request Tracing**:
+  - Input/output capture
+  - Chain execution visualization
+  - Error tracking
+- **Zero-Config Setup**: Automatic tracing when API key is present
+- **Development Support**: Debug and optimize AI interactions
+
 ## 🔧 Development & Testing
 
 ### ✅ Health Check System
@@ -251,7 +265,8 @@ This document tracks the implemented features and capabilities of the AI News Su
 - **User Interfaces**: 3 different interface types
 - **Database Tools**: 3 specialized database utilities
 - **Configuration Options**: 15+ configurable settings
-- **Recent Additions**: 
+- **Recent Additions**:
+  - LangSmith Observability Integration (August 2025)
   - AI Confidence Scoring (August 2025)
   - Built-in duplicate prevention (August 2025)
 

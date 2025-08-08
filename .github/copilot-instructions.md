@@ -242,6 +242,39 @@ docs: update API documentation with new endpoints
 - Update all three interfaces (Web, CLI, API) consistently
 - Reference research documentation in implementation comments
 
+### Configuration Management
+1. **Environment Variables**:
+   - All configurable values MUST be defined in `settings.py`
+   - Every setting MUST have a corresponding entry in `.env.example`
+   - Settings should be grouped by component/function
+   - Each setting MUST include a descriptive comment in `.env.example`
+   - Follow the naming pattern: `COMPONENT_SETTING_NAME`
+
+2. **Settings Pattern**:
+   ```python
+   # In settings.py
+   COMPONENT_SETTING = os.getenv("COMPONENT_SETTING", "default_value")
+   
+   # In .env.example
+   # Description of what this setting does and when to change it
+   COMPONENT_SETTING=default_value
+   ```
+
+3. **Settings Categories**:
+   - API Keys & External Services
+   - Component Configuration
+   - Performance Tuning
+   - Feature Flags
+   - System Behavior
+   - Debug & Development
+
+4. **Adding New Settings**:
+   - Add to `settings.py` with type hints
+   - Document in `.env.example` with explanation
+   - Update README if setting affects deployment
+   - Consider backwards compatibility
+   - Add validation if required
+
 ### Common Pitfalls
 - **API Keys**: Validate at runtime, not import time
 - **Vector Storage**: URLs as IDs can collide - use hash functions
