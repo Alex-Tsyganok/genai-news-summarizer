@@ -1,0 +1,75 @@
+[
+    {
+        "url": "https://www.artificialintelligence-news.com/news/alan-turing-institute-humanities-are-key-future-of-ai",
+        "title": "Alan Turing Institute: Humanities are key to the future of AI",
+        "expected_topics": ["alan turing institute", "humanities", "ai future", "research", "interdisciplinary"],
+        "content_type": "news_article",
+        "source_type": "specialized_news",
+        "is_valid_news": true
+    },
+    {
+        "url": "https://stackoverflow.com/questions/60420420/what-is-the-difference-between-tensorflow-and-pytorch",
+        "title": "Stack Overflow Question about ML Frameworks",
+        "expected_result": "rejection",
+        "reason": "not a news article",
+        "content_type": "qa_post",
+        "source_type": "developer_platform",
+        "is_valid_news": false
+    },
+    {
+        "url": "https://techcrunch.com/2025/08/07/openais-gpt-5-is-here/",
+        "title": "OpenAI's GPT-5 is here: A new milestone in artificial intelligence",
+        "expected_topics": ["gpt-5", "openai", "language models", "ai advancement", "machine learning"],
+        "content_type": "news_article",
+        "source_type": "tech_journalism",
+        "is_valid_news": true
+    },
+    {
+        "url": "https://github.com/microsoft/TypeScript/blob/main/README.md",
+        "title": "TypeScript README",
+        "expected_result": "rejection",
+        "reason": "documentation page, not news",
+        "content_type": "documentation",
+        "source_type": "repository_docs",
+        "is_valid_news": false
+    },
+    {
+        "url": "https://www.amazon.com/Best-Sellers-Books/zgbs",
+        "title": "Amazon Best Sellers",
+        "expected_result": "rejection",
+        "reason": "e-commerce page, not news",
+        "content_type": "product_listing",
+        "source_type": "ecommerce",
+        "is_valid_news": false
+    },
+    {
+        "url": "https://blog.google/technology/ai/ask-a-techspert-what-is-inference/",
+        "title": "Ask a Techspert: What is inference?",
+        "expected_topics": ["ai inference", "machine learning", "tpu", "neural networks", "google ai"],
+        "content_type": "educational_blog",
+        "source_type": "corporate_tech_blog",
+        "published_date": "2025-06-23",
+        "author": "Molly McHugh-Johnson",
+        "experts_quoted": ["Niranjan Hira", "Fenghui Zhang"],
+        "format": "interview",
+        "is_valid_news": true
+    },
+    {
+        "url": "https://youtube.com/watch?v=dQw4w9WgXcQ",
+        "title": "YouTube Video",
+        "expected_result": "rejection",
+        "reason": "video content, not news article",
+        "content_type": "video",
+        "source_type": "video_platform",
+        "is_valid_news": false
+    },
+    {
+        "url": "https://docs.python.org/3/tutorial/index.html",
+        "title": "Python Documentation",
+        "expected_result": "rejection",
+        "reason": "documentation page, not news",
+        "content_type": "documentation",
+        "source_type": "official_docs",
+        "is_valid_news": false
+    }
+]
