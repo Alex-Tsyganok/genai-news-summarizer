@@ -14,6 +14,25 @@ This document tracks the implemented features and capabilities of the AI News Su
 - **Metadata Extraction**: Title, body, images, publication date, and source tracking
 - **Error Handling**: Graceful degradation with detailed error reporting
 
+### ✅ AI Confidence Scoring 🆕
+
+- **GPT-Powered Analysis**: AI-based evaluation of article authenticity and quality
+- **Multi-Factor Scoring**:
+  - Writing Style Analysis: Professional journalism detection
+  - Content Quality Assessment: News-worthiness evaluation
+  - Structural Analysis: News article format validation
+  - Objectivity Check: Promotional content detection
+- **Detailed Analytics**:
+  - Confidence Scores (0-1 scale)
+  - Component-wise Scoring (style, content, structure)
+  - Analysis Flags and Reasons
+  - Rejection Explanations
+- **Quality Control**:
+  - Configurable Confidence Thresholds
+  - Automatic Filtering of Low-Quality Content
+  - Comprehensive Logging of Scoring Process
+  - Integration with Pipeline Statistics
+
 ### ✅ AI-Powered Summarization
 
 - **OpenAI Integration**: GPT-powered article summarization
@@ -227,13 +246,15 @@ This document tracks the implemented features and capabilities of the AI News Su
 
 ## 📊 Feature Statistics
 
-- **Total Features**: 40+ implemented features
-- **Core Components**: 5 main pipeline stages
+- **Total Features**: 45+ implemented features
+- **Core Components**: 6 main pipeline stages
 - **User Interfaces**: 3 different interface types
 - **Database Tools**: 3 specialized database utilities
 - **Configuration Options**: 15+ configurable settings
-- **Recent Additions**: Built-in duplicate prevention (August 2025)
+- **Recent Additions**: 
+  - AI Confidence Scoring (August 2025)
+  - Built-in duplicate prevention (August 2025)
 
 ---
 
-**Last Updated**: August 7, 2025
+**Last Updated**: August 8, 2025

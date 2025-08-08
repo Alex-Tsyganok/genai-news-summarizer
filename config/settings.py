@@ -20,6 +20,10 @@ class Settings:
     REQUEST_TIMEOUT: int = int(os.getenv("REQUEST_TIMEOUT", "30"))
     MAX_RETRIES: int = int(os.getenv("MAX_RETRIES", "3"))
     
+    # AI Scoring Configuration
+    MIN_CONFIDENCE_SCORE: float = float(os.getenv("MIN_CONFIDENCE_SCORE", "0.6"))  # Minimum score to consider article as valid news
+    MIN_CONTENT_LENGTH: int = int(os.getenv("MIN_CONTENT_LENGTH", "300"))  # Minimum length for AI analysis
+    
     # Summarization Configuration
     MAX_SUMMARY_LENGTH: int = int(os.getenv("MAX_SUMMARY_LENGTH", "200"))
     MAX_TOPICS: int = int(os.getenv("MAX_TOPICS", "5"))

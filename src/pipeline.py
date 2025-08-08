@@ -10,6 +10,7 @@ from .extractors import NewsExtractor
 from .summarizers import AIsummarizer
 from .storage import VectorStorage
 from .search import SemanticSearcher
+from .scoring import AIConfidenceScorer
 from config import settings, logger
 
 class NewsPipeline:
@@ -25,6 +26,7 @@ class NewsPipeline:
         
         # Initialize components
         self.extractor = NewsExtractor()
+        self.ai_scorer = AIConfidenceScorer()
         self.summarizer = AIsummarizer()
         self.storage = VectorStorage()
         self.searcher = SemanticSearcher(self.storage)
@@ -62,16 +64,70 @@ class NewsPipeline:
                 
                 if not extraction_result.success:
                     results['failed'] += 1
-                    results['errors'].append({
+                    error_details = {
                         'url': url,
                         'step': 'extraction',
                         'error': extraction_result.error
-                    })
+                    }
+                    
+                    # Add confidence score if available
+                    if extraction_result.article and 'confidence_score' in extraction_result.article.metadata:
+                        error_details['confidence_score'] = extraction_result.article.metadata['confidence_score']
+                    
+                    results['errors'].append(error_details)
                     continue
                 
                 article = extraction_result.article
                 
-                # Step 2: Generate summary and topics
+                # Step 2: Calculate AI confidence score
+                try:
+                    logger.info(f"Calculating AI confidence score for article: {article.title[:60]}...")
+                    
+                    scoring_result = self.ai_scorer.score_article(article)
+                    if not scoring_result.success:
+                        logger.error(f"AI scoring failed: {scoring_result.error}")
+                        results['failed'] += 1
+                        results['errors'].append({
+                            'url': url,
+                            'step': 'ai_scoring',
+                            'error': scoring_result.error
+                        })
+                        continue
+                        
+                    # Check if AI confidence score is too low
+                    ai_score = article.metadata.get('ai_confidence_score', 0.0)
+                    analysis = article.metadata.get('ai_analysis', {})
+                    
+                    logger.info(f"AI confidence score: {ai_score:.2f} (threshold: {settings.MIN_CONFIDENCE_SCORE})")
+                    if analysis:
+                        logger.info(f"Analysis - Style: {analysis.get('style_score', 'N/A')}, "
+                                  f"Content: {analysis.get('content_quality_score', 'N/A')}, "
+                                  f"Structure: {analysis.get('structure_score', 'N/A')}")
+                        if analysis.get('flags'):
+                            logger.warning(f"Analysis flags: {', '.join(analysis['flags'])}")
+                    
+                    if ai_score < settings.MIN_CONFIDENCE_SCORE:
+                        logger.warning(f"Article rejected: AI confidence score {ai_score:.2f} below threshold {settings.MIN_CONFIDENCE_SCORE}")
+                        if analysis.get('reasons'):
+                            logger.warning(f"Rejection reasons: {', '.join(analysis['reasons'])}")
+                            
+                        results['failed'] += 1
+                        results['errors'].append({
+                            'url': url,
+                            'step': 'ai_scoring',
+                            'error': f'AI confidence score too low: {ai_score:.2f}',
+                            'ai_score': ai_score,
+                            'analysis': analysis
+                        })
+                        continue
+                    
+                    logger.info(f"Article passed AI confidence check with score {ai_score:.2f}")
+                        
+                except Exception as e:
+                    logger.warning(f"AI scoring failed for {url}: {e}")
+                    # Continue with pipeline even if AI scoring fails
+                
+                # Step 3: Generate summary and topics
                 try:
                     summary, topics = self.summarizer.summarize_article(article)
                     article.summary = summary
@@ -385,6 +441,13 @@ class NewsPipeline:
         except Exception as e:
             logger.error(f"Extractor health check failed: {e}")
             health['extractor'] = False
+            
+        try:
+            # Check AI scorer
+            health['ai_scorer'] = hasattr(self.ai_scorer, 'score_article')
+        except Exception as e:
+            logger.error(f"AI scorer health check failed: {e}")
+            health['ai_scorer'] = False
         
         try:
             # Check summarizer

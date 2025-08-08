@@ -17,6 +17,7 @@
 ## 🚀 Key Features
 
 - 📰 **Multi-Method News Extraction**: Newspaper3k + BeautifulSoup fallback for robust scraping
+- 🎯 **AI Confidence Scoring**: GPT-powered authenticity and quality validation of news content
 - 🤖 **AI-Powered Analysis**: OpenAI GPT models for summarization and topic identification  
 - 🔍 **Advanced Semantic Search**: Vector embeddings with contextual understanding
 - 🧠 **Synonym Recognition**: Handles semantically similar search terms
@@ -28,16 +29,16 @@
 
 ### Core Components
 ```text
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  News Extractor │    │   AI Summarizer  │    │ Vector Storage  │
-│                 │    │                  │    │                 │
-│ • Newspaper3k   │───▶│ • OpenAI GPT     │───▶│ • ChromaDB      │
-│ • BeautifulSoup │    │ • LangChain      │    │ • Embeddings    │
-│ • Fallback Logic│    │ • Topic Extract  │    │ • Persistence   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                         │
-┌─────────────────┐    ┌──────────────────┐             │
-│ Search Interface│    │ Semantic Searcher│◀────────────┘
+┌─────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  News Extractor │    │  AI Confidence   │    │   AI Summarizer  │    │ Vector Storage  │
+│                 │    │     Scorer       │    │                  │    │                 │
+│ • Newspaper3k   │───▶│ • GPT Analysis   │───▶│ • OpenAI GPT     │───▶│ • ChromaDB      │
+│ • BeautifulSoup │    │ • Quality Check  │    │ • LangChain      │    │ • Embeddings    │
+│ • Fallback Logic│    │ • News Validate  │    │ • Topic Extract  │    │ • Persistence   │
+└─────────────────┘    └──────────────────┘    └──────────────────┘    └─────────────────┘
+                                                                                 │
+┌─────────────────┐    ┌──────────────────┐                                     │
+│ Search Interface│    │ Semantic Searcher│◀────────────────────────────────────┘
 │                 │    │                  │
 │ • Web UI        │───▶│ • Vector Search  │
 │ • CLI Tool      │    │ • Synonym Handle │
@@ -46,9 +47,11 @@
 ```
 
 ### Technology Stack
+
 - **🐍 Python 3.8+**: Core programming language (3.12.x recommended for best compatibility)
 - **🔗 LangChain**: AI orchestration and prompt management
-- **🤖 OpenAI API**: GPT models for summarization and embeddings
+- **🤖 OpenAI API**: GPT models for analysis, summarization, and embeddings
+- **🎯 AI Models**: GPT-3.5/4 for content validation and scoring
 - **💾 ChromaDB**: Vector database for semantic storage
 - **🌐 Streamlit**: Interactive web interface
 - **🕷️ Newspaper3k**: Primary article extraction
