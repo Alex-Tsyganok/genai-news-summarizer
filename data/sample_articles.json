@@ -1,32 +1,598 @@
 [
-    {
-        "url": "https://www.artificialintelligence-news.com/news/alan-turing-institute-humanities-are-key-future-of-ai",
-        "title": "Alan Turing Institute: Humanities are key to the future of AI",
-        "expected_topics": ["alan turing institute", "humanities", "ai future", "research", "interdisciplinary"]
-    },
-    {
-        "url": "https://arxiv.org/abs/2301.00001",
-        "title": "Recent advances in transformer architecture for natural language processing",
-        "expected_topics": ["transformer", "nlp", "neural networks", "deep learning", "research"]
-    },
-    {
-        "url": "https://www.nature.com/articles/d41586-023-00001-1",
-        "title": "AI breakthrough in protein folding prediction transforms biology",
-        "expected_topics": ["protein folding", "ai breakthrough", "biology", "computational biology", "research"]
-    },
-    {
-        "url": "https://blog.google/technology/ai/",
-        "title": "Google AI research and development updates",
-        "expected_topics": ["google ai", "research", "development", "machine learning", "technology"]
-    },
-    {
-        "url": "https://openai.com/blog/",
-        "title": "OpenAI latest research and product announcements",
-        "expected_topics": ["openai", "research", "gpt", "ai products", "announcements"]
-    },
-    {
-        "url": "https://www.microsoft.com/en-us/research/blog/",
-        "title": "Microsoft Research advances in artificial intelligence",
-        "expected_topics": ["microsoft research", "ai advances", "technology", "innovation", "research"]
-    }
+  {
+    "url": "https://www.artificialintelligence-news.com/news/alan-turing-institute-humanities-are-key-future-of-ai",
+    "title": "Alan Turing Institute: Humanities are key to the future of AI",
+    "expected_topics": [
+      "alan",
+      "turing",
+      "institute",
+      "humanities",
+      "are",
+      "artificialintelligence-news",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bbc.com/news/technology/#main-content",
+    "title": "Innovation",
+    "expected_topics": [
+      "innovation",
+      "bbc",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bbc.com/news/topics/c2vdnvdg6xxt",
+    "title": "NewsNews",
+    "expected_topics": [
+      "newsnews",
+      "bbc",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bbc.com/news/war-in-ukraine",
+    "title": "NewsNews",
+    "expected_topics": [
+      "newsnews",
+      "bbc",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bbc.com/news/articles/c0k3700zljjo/#main-content",
+    "title": "The people who think AI might become conscious",
+    "expected_topics": [
+      "people",
+      "who",
+      "think",
+      "might",
+      "become",
+      "bbc",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://apnews.com/article/israel-palestinians-hamas-war-hostages-gaza-08-08-2025-920f5b4bfd3fe07ded6acd28f5d77768",
+    "title": "Israel’s plan to take over Gaza City stirs fears for civilians and hostages",
+    "expected_topics": [
+      "israel",
+      "plan",
+      "take",
+      "gaza",
+      "city",
+      "apnews",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://apnews.com/article/australia-poisonous-mushrooms-murder-erin-patterson-0f3d4939b927054745054ad6537d37d5",
+    "title": "Husband suspected wife of poisoning him before she killed 3 relatives with toxic mushrooms",
+    "expected_topics": [
+      "husband",
+      "suspected",
+      "wife",
+      "poisoning",
+      "him",
+      "apnews",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://apnews.com/article/germany-mideast-weapons-b957e28b73ee94ed33fbd2d4e4d36246",
+    "title": "Germany halts military exports to Israel for use in Gaza amid outcry over Netanyahu plan",
+    "expected_topics": [
+      "germany",
+      "halts",
+      "military",
+      "exports",
+      "israel",
+      "apnews",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theverge.com/2024/9/20/24249294/verge-deals-newsletter-subscribe-tech-discounts",
+    "title": "Welcome to the new and improved Verge Deals newsletter",
+    "expected_topics": [
+      "welcome",
+      "new",
+      "improved",
+      "verge",
+      "deals",
+      "theverge",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theverge.com/news/756799/apple-intelligence-openai-chatgpt-gpt-5-ios-26",
+    "title": "Apple Intelligence’s ChatGPT integration will use GPT-5 starting with iOS 26",
+    "expected_topics": [
+      "apple",
+      "intelligence",
+      "chatgpt",
+      "integration",
+      "will",
+      "theverge",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theverge.com/news/756720/google-finance-ai-makeover-chatbot",
+    "title": "The Google Finance page is getting an AI makeover",
+    "expected_topics": [
+      "google",
+      "finance",
+      "page",
+      "getting",
+      "makeover",
+      "theverge",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.wired.com/story/what-gpt-5-means-for-chatgpt-users/",
+    "title": "Join Our Next Livestream: What GPT-5 Means for ChatGPT Users",
+    "expected_topics": [
+      "join",
+      "our",
+      "next",
+      "livestream",
+      "what",
+      "wired",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.wired.com/story/openais-gpt-5-is-here/",
+    "title": "OpenAI Finally Launched GPT-5. Here's Everything You Need to Know",
+    "expected_topics": [
+      "openai",
+      "finally",
+      "launched",
+      "gpt-5",
+      "here",
+      "wired",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.wired.com/story/age-verification-is-sweeping-gaming-is-it-ready-for-the-age-of-ai-fakes/",
+    "title": "Age Verification Is Sweeping Gaming. Is It Ready for the Age of AI Fakes?",
+    "expected_topics": [
+      "age",
+      "verification",
+      "sweeping",
+      "gaming",
+      "ready",
+      "wired",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://arstechnica.com/tech-policy/2025/08/ai-industry-horrified-to-face-largest-copyright-class-action-ever-certified/",
+    "title": "AI industry horrified to face largest copyright class action ever certified",
+    "expected_topics": [
+      "industry",
+      "horrified",
+      "face",
+      "largest",
+      "copyright",
+      "arstechnica",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://arstechnica.com/tech-policy/2025/08/ai-industry-horrified-to-face-largest-copyright-class-action-ever-certified/#comments",
+    "title": "AI industry horrified to face largest copyright class action ever certified",
+    "expected_topics": [
+      "industry",
+      "horrified",
+      "face",
+      "largest",
+      "copyright",
+      "arstechnica",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theguardian.com/technology/artificialintelligenceai/2025/aug/08/all",
+    "title": "Artificial intelligence (AI) | Technology | The Guardian",
+    "expected_topics": [
+      "artificial",
+      "intelligence",
+      "technology",
+      "guardian",
+      "theguardian",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theguardian.com/australia-news/2025/aug/08/openai-chatgpt-5-struggled-with-spelling-and-geography",
+    "title": "OpenAI unveils ChatGPT-5 and its hyped ‘PhD level’ intelligence struggled with basic spelling and geography",
+    "expected_topics": [
+      "openai",
+      "unveils",
+      "chatgpt-5",
+      "its",
+      "hyped",
+      "theguardian",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theguardian.com/commentisfree/2025/aug/08/journalist-ai-interview-dead-child-joaquin-oliver",
+    "title": "When a journalist uses AI to interview a dead child, isn’t it time to ask what the boundaries should be?",
+    "expected_topics": [
+      "when",
+      "journalist",
+      "uses",
+      "interview",
+      "dead",
+      "theguardian",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://techcrunch.com/2025/08/08/meta-acquires-ai-audio-startup-waveforms/",
+    "title": "Meta acquires AI audio startup WaveForms",
+    "expected_topics": [
+      "meta",
+      "acquires",
+      "audio",
+      "startup",
+      "waveforms",
+      "techcrunch",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://techcrunch.com/2025/08/08/google-tests-revamped-google-finance-with-ai-upgrades-live-news-feed/",
+    "title": "Google tests revamped Google Finance with AI upgrades, live news feed",
+    "expected_topics": [
+      "google",
+      "tests",
+      "revamped",
+      "finance",
+      "techcrunch",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://techcrunch.com/2025/08/07/elon-musk-says-x-plans-to-introduce-ads-in-groks-responses/",
+    "title": "Elon Musk says X plans to introduce ads in Grok’s responses",
+    "expected_topics": [
+      "elon",
+      "musk",
+      "says",
+      "plans",
+      "introduce",
+      "techcrunch",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://venturebeat.com/2025/",
+    "title": "2025 | VentureBeat",
+    "expected_topics": [
+      "venturebeat",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://venturebeat.com/2025/01/",
+    "title": "January 2025 | VentureBeat",
+    "expected_topics": [
+      "january",
+      "venturebeat",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://venturebeat.com/2025/02/",
+    "title": "February 2025 | VentureBeat",
+    "expected_topics": [
+      "february",
+      "venturebeat",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.cnbc.com/pro/news/",
+    "title": "Pro News and Analysis",
+    "expected_topics": [
+      "pro",
+      "news",
+      "analysis",
+      "cnbc",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.cnbc.com/2023/05/11/market-strategist-survey-forecast.html",
+    "title": "Wall Street's official 2025 stock market outlook: The latest CNBC Market Strategist Survey",
+    "expected_topics": [
+      "wall",
+      "street",
+      "official",
+      "stock",
+      "market",
+      "cnbc",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.cnbc.com/2025/03/19/cnbc-pro-stock-lists-here-are-the-latest-stocks-including-all-weather-plays.html",
+    "title": "CNBC Pro Stock Lists:  Here are the latest stocks including all-weather plays",
+    "expected_topics": [
+      "cnbc",
+      "pro",
+      "stock",
+      "lists",
+      "here",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://blog.google/products/news/",
+    "title": "Google News",
+    "expected_topics": [
+      "google",
+      "news",
+      "blog",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.anthropic.com/news/#main-content",
+    "title": "Newsroom",
+    "expected_topics": [
+      "newsroom",
+      "anthropic",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.anthropic.com/news/#footer",
+    "title": "Newsroom",
+    "expected_topics": [
+      "newsroom",
+      "anthropic",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.anthropic.com/news/claude-opus-4-1",
+    "title": "Claude Opus 4.1",
+    "expected_topics": [
+      "claude",
+      "opus",
+      "anthropic",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://hai.stanford.edu/news/#site-main",
+    "title": "News | Stanford HAI",
+    "expected_topics": [
+      "news",
+      "stanford",
+      "hai",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://hai.stanford.edu/ai-index/2025-ai-index-report",
+    "title": "The 2025 AI Index Report",
+    "expected_topics": [
+      "index",
+      "report",
+      "hai",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://hai.stanford.edu/news/what-workers-really-want-from-artificial-intelligence",
+    "title": "What Workers Really Want from Artificial Intelligence",
+    "expected_topics": [
+      "what",
+      "workers",
+      "really",
+      "want",
+      "artificial",
+      "hai",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-warns-of-high-severity-flaw-in-hybrid-exchange-deployments/",
+    "title": "Microsoft warns of high-severity flaw in hybrid Exchange deployments",
+    "expected_topics": [
+      "microsoft",
+      "warns",
+      "high-severity",
+      "flaw",
+      "hybrid",
+      "bleepingcomputer",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bleepingcomputer.com/news/security/google-suffers-data-breach-in-ongoing-salesforce-data-theft-attacks/",
+    "title": "Google suffers data breach in ongoing Salesforce data theft attacks",
+    "expected_topics": [
+      "google",
+      "suffers",
+      "data",
+      "breach",
+      "ongoing",
+      "bleepingcomputer",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bleepingcomputer.com/news/security/revault-flaws-let-hackers-bypass-windows-login-on-dell-laptops/",
+    "title": "ReVault flaws let hackers bypass Windows login on Dell laptops",
+    "expected_topics": [
+      "revault",
+      "flaws",
+      "let",
+      "hackers",
+      "bypass",
+      "bleepingcomputer",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theregister.com/2025/08/08/stardict_leaky_app_of_week/",
+    "title": "Star leaky app of the week: StarDict",
+    "expected_topics": [
+      "star",
+      "leaky",
+      "app",
+      "week",
+      "stardict",
+      "theregister",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theregister.com/2025/08/08/exwhite_house_cyber_and_counterterrorism/",
+    "title": "Ex-White House cyber, counter-terrorism guru: Microsoft considers security an annoyance, not a necessity",
+    "expected_topics": [
+      "ex-white",
+      "house",
+      "cyber",
+      "counter-terrorism",
+      "guru",
+      "theregister",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.theregister.com/2025/08/08/infosec_hounds_spot_prompt_injection/",
+    "title": "Infosec hounds spot prompt injection vuln in Google Gemini apps",
+    "expected_topics": [
+      "infosec",
+      "hounds",
+      "spot",
+      "prompt",
+      "injection",
+      "theregister",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.zdnet.com/article/best-smartwatch-deals-2025/",
+    "title": "The best smartwatch and fitness tracker deals to shop now",
+    "expected_topics": [
+      "best",
+      "smartwatch",
+      "fitness",
+      "tracker",
+      "deals",
+      "zdnet",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.zdnet.com/article/best-apple-deals-2025/",
+    "title": "The best Apple deals right now: Save on MacBooks, iPhones, and more",
+    "expected_topics": [
+      "best",
+      "apple",
+      "deals",
+      "right",
+      "now",
+      "zdnet",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.zdnet.com/article/best-laptop-deals-2025/",
+    "title": "The best laptop deals right now: Save on Apple, Dell, HP, and more",
+    "expected_topics": [
+      "best",
+      "laptop",
+      "deals",
+      "right",
+      "now",
+      "zdnet",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.scientificamerican.com/article/mathematicians-question-ai-performance-at-international-math-olympiad/",
+    "title": "AI Took on the Math Olympiad—But Mathematicians Aren’t Impressed",
+    "expected_topics": [
+      "took",
+      "math",
+      "olympiad",
+      "but",
+      "mathematicians",
+      "scientificamerican",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.scientificamerican.com/article/teens-are-flocking-to-ai-chatbots-is-this-healthy/",
+    "title": "Teens Are Flocking to AI Chatbots. Is this Healthy?",
+    "expected_topics": [
+      "teens",
+      "are",
+      "flocking",
+      "chatbots",
+      "healthy",
+      "scientificamerican",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.scientificamerican.com/article/can-a-chatbot-be-conscious-inside-anthropics-interpretability-research-on/",
+    "title": "Can a Chatbot be Conscious? Inside Anthropic’s Interpretability Research on Claude 4",
+    "expected_topics": [
+      "can",
+      "chatbot",
+      "conscious",
+      "inside",
+      "anthropic",
+      "scientificamerican",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bbc.com/news/technology",
+    "title": "Innovation",
+    "expected_topics": [
+      "innovation",
+      "bbc",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://www.bbc.com/news/articles/c0k3700zljjo",
+    "title": "The people who think AI might become conscious",
+    "expected_topics": [
+      "people",
+      "who",
+      "think",
+      "might",
+      "become",
+      "bbc",
+      "ai"
+    ]
+  },
+  {
+    "url": "https://apnews.com/article/intel-trump-tan-cotton-ai-china-492a8d9353cd2396ec03ce1d844d0fd4",
+    "title": "Intel CEO responds after Trump calls for his resignation",
+    "expected_topics": [
+      "intel",
+      "ceo",
+      "responds",
+      "after",
+      "trump",
+      "apnews",
+      "ai"
+    ]
+  }
 ]
