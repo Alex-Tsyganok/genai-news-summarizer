@@ -20,16 +20,36 @@ class NewsPipeline:
     This class provides a high-level interface for the entire news processing workflow.
     """
     
-    def __init__(self):
-        """Initialize the news pipeline with all components."""
+    def __init__(self, config=None):
+        """
+        Initialize the news pipeline with all components.
+        
+        Args:
+            config: Optional custom configuration dictionary. If not provided, default settings are used.
+        """
         logger.info("Initializing News Pipeline...")
         
-        # Initialize components
+        # Use provided config or default settings
+        self._config = config if config is not None else {
+            'openai': settings.get_openai_config(),
+            'chromadb': settings.get_chromadb_config(),
+            'similarity_threshold': settings.SIMILARITY_THRESHOLD,
+            'min_confidence_score': settings.MIN_CONFIDENCE_SCORE,
+            'use_fallback_only': settings.USE_FALLBACK_ONLY
+        }
+        
+        # Initialize components with specific configuration
         self.extractor = NewsExtractor()
-        self.ai_scorer = AIConfidenceScorer()
-        self.summarizer = AIsummarizer()
-        self.storage = VectorStorage()
-        self.searcher = SemanticSearcher(self.storage)
+        self.ai_scorer = AIConfidenceScorer(
+            openai_config=self._config['openai'],
+            min_confidence_score=self._config['min_confidence_score']
+        )
+        self.summarizer = AIsummarizer(openai_config=self._config['openai'])
+        self.storage = VectorStorage(chromadb_config=self._config['chromadb'])
+        self.searcher = SemanticSearcher(
+            self.storage,
+            similarity_threshold=self._config['similarity_threshold']
+        )
         
         logger.info("News Pipeline initialized successfully")
     
@@ -239,11 +259,11 @@ class NewsPipeline:
                 'searcher': 'SemanticSearcher'
             },
             'configuration': {
-                'openai_model': settings.OPENAI_MODEL,
-                'embedding_model': settings.OPENAI_EMBEDDING_MODEL,
-                'collection_name': settings.CHROMADB_COLLECTION_NAME,
-                'similarity_threshold': settings.SIMILARITY_THRESHOLD,
-                'fallback_only_mode': settings.USE_FALLBACK_ONLY
+                'openai_model': self.openai_config['model'],
+                'embedding_model': self.openai_config['embedding_model'],
+                'collection_name': self._config['chromadb']['collection_name'],
+                'similarity_threshold': self.similarity_threshold,
+                'fallback_only_mode': self.use_fallback_only
             }
         })
         
@@ -406,6 +426,27 @@ class NewsPipeline:
         logger.warning("Resetting article storage...")
         return self.storage.reset_collection()
     
+    # Getter methods for commonly accessed settings
+    @property
+    def use_fallback_only(self) -> bool:
+        """Get fallback mode setting."""
+        return self._config['use_fallback_only']
+    
+    @property
+    def similarity_threshold(self) -> float:
+        """Get similarity threshold for search."""
+        return self._config['similarity_threshold']
+    
+    @property
+    def min_confidence_score(self) -> float:
+        """Get minimum confidence score threshold."""
+        return self._config['min_confidence_score']
+    
+    @property
+    def openai_config(self) -> Dict[str, Any]:
+        """Get OpenAI configuration."""
+        return self._config['openai']
+    
     def health_check(self) -> Dict[str, bool]:
         """
         Perform health check on all pipeline components.
@@ -417,11 +458,11 @@ class NewsPipeline:
         
         try:
             # Check OpenAI connection (not required in fallback-only mode)
-            if settings.USE_FALLBACK_ONLY:
+            if self.use_fallback_only:
                 health['openai'] = True  # Not needed in fallback mode
             else:
                 # Check if API key exists and is not empty
-                api_key = settings.OPENAI_API_KEY
+                api_key = self.openai_config['api_key']
                 health['openai'] = bool(api_key and api_key.strip())
         except Exception as e:
             logger.error(f"OpenAI health check failed: {e}")

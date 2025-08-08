@@ -16,8 +16,14 @@ class VectorStorage:
     Vector database storage using ChromaDB for article embeddings and retrieval.
     """
     
-    def __init__(self):
-        """Initialize the vector storage."""
+    def __init__(self, chromadb_config=None):
+        """
+        Initialize the vector storage.
+        
+        Args:
+            chromadb_config: Optional custom ChromaDB configuration
+        """
+        self.config = chromadb_config or settings.get_chromadb_config()
         self.client = None
         self.collection = None
         self._initialize_client()
@@ -26,11 +32,11 @@ class VectorStorage:
         """Initialize ChromaDB client and collection."""
         try:
             # Ensure persist directory exists
-            os.makedirs(settings.CHROMADB_PERSIST_DIRECTORY, exist_ok=True)
+            os.makedirs(self.config['persist_directory'], exist_ok=True)
             
             # Initialize ChromaDB client
             self.client = chromadb.PersistentClient(
-                path=settings.CHROMADB_PERSIST_DIRECTORY,
+                path=self.config['persist_directory'],
                 settings=ChromaSettings(
                     anonymized_telemetry=False,
                     allow_reset=True
@@ -39,11 +45,11 @@ class VectorStorage:
             
             # Get or create collection
             self.collection = self.client.get_or_create_collection(
-                name=settings.CHROMADB_COLLECTION_NAME,
+                name=self.config['collection_name'],
                 metadata={"description": "News articles with AI-generated summaries and topics"}
             )
             
-            logger.info(f"Initialized ChromaDB with collection: {settings.CHROMADB_COLLECTION_NAME}")
+            logger.info(f"Initialized ChromaDB with collection: {self.config['collection_name']}")
             
         except Exception as e:
             logger.error(f"Failed to initialize ChromaDB: {e}")

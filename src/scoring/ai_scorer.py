@@ -16,9 +16,16 @@ class AIConfidenceScorer:
     Uses AI to evaluate if content is a legitimate news article.
     """
     
-    def __init__(self):
-        """Initialize the AI confidence scorer."""
-        self.openai_config = settings.get_openai_config()
+    def __init__(self, openai_config=None, min_confidence_score=None):
+        """
+        Initialize the AI confidence scorer.
+        
+        Args:
+            openai_config: Optional custom OpenAI configuration
+            min_confidence_score: Optional minimum confidence score threshold
+        """
+        self.openai_config = openai_config or settings.get_openai_config()
+        self.min_confidence_score = min_confidence_score or settings.MIN_CONFIDENCE_SCORE
         openai.api_key = self.openai_config['api_key']
         
     def score_article(self, article: Article) -> ProcessingResult:
@@ -65,7 +72,7 @@ class AIConfidenceScorer:
             "content_excerpt": article.body[:1000],  # First 1000 chars
             "metadata": {
                 k: v for k, v in (article.metadata or {}).items()
-                if k in ['authors', 'publish_date', 'extraction_method']
+                if k in ['authors', 'publish_date', 'extraction_method', 'source_url']
             }
         }
         return json.dumps(content)
@@ -78,26 +85,78 @@ class AIConfidenceScorer:
             Tuple of (confidence_score, detailed_analysis)
         """
         # Create LangChain prompt template
-        system_prompt = """You are an expert news article validator. 
+        system_prompt = """You are an expert news article validator with STRICT CRITERIA.
             Analyze the provided content and determine if it's a legitimate news article.
-            Consider factors like:
-            - Professional writing style and structure
-            - News-worthy content
-            - Objectivity and lack of promotional content
-            - Presence of typical news article elements
+
+            SCORING CRITERIA:
+            1. Content Type Determination:
+               DOCUMENTATION (-0.8):
+               - Technical documentation, tutorials
+               - API documentation, README files
+               - Installation guides, how-to content
+               - Must be labeled as "documentation"
+               
+               FORUM/Q&A (-0.7):
+               - Stack Overflow style posts
+               - Forum discussions
+               - Technical Q&A content
+               - Must be labeled as "forum_post"
+               
+               PRODUCT/MARKETING (-0.6):
+               - Product listings
+               - Marketing materials
+               - Promotional content
+               - Must be labeled as "product_page"
+               
+               BLOG (-0.3 to 0):
+               - Technical blogs: -0.3
+               - Educational blogs: -0.2
+               - News-focused blogs: 0
+               - Must be labeled appropriately
             
+            2. Professional News Elements:
+               Required for News Classification:
+               - Clear headline/title (+0.2)
+               - Author attribution (+0.1)
+               - Publication date (+0.1)
+               - News-worthy event/topic (+0.3)
+               - Objective reporting style (+0.2)
+               - Multiple sources/quotes (+0.1)
+            
+            3. Automatic Rejection Triggers:
+               - Code snippets/commands = documentation
+               - Q&A format = forum_post
+               - Product specs = product_page
+               - Installation steps = documentation
+               
             Return a JSON response with:
             {{
                 "confidence_score": float (0-1),
                 "is_news_article": boolean,
+                "content_type": "news_article" | "blog_post" | "documentation" | "forum_post" | "product_page" | "other",
                 "analysis": {{
                     "style_score": float (0-1),
                     "content_quality_score": float (0-1),
                     "structure_score": float (0-1),
-                    "reasons": [str],
-                    "flags": [str]
+                    "news_relevance": float (0-1),
+                    "reasons": [str],  # Why it was accepted/rejected
+                    "flags": [str]     # Content type warnings
                 }}
-            }}"""
+            }}
+            
+            STRICT SCORING RULES:
+            - Documentation MUST score <= 0.4
+            - Technical blogs without news focus MUST score <= 0.5
+            - Forum/Q&A content MUST score <= 0.3
+            - Product/marketing pages MUST score <= 0.4
+            - Pure tutorials MUST score <= 0.3
+            - Only news articles and news-focused blogs can score > 0.6
+            
+            On content_type:
+            - Be VERY aggressive in detecting documentation
+            - Any how-to content = documentation
+            - Any technical guides = documentation
+            - Any API/SDK docs = documentation"""
             
         human_prompt = "Analyze this content: {input_content}"
         

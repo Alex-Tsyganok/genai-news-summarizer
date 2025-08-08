@@ -18,12 +18,18 @@ class AIsummarizer:
     Generates concise summaries and identifies key topics from article content.
     """
     
-    def __init__(self):
-        """Initialize the AI summarizer."""
-        self.client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+    def __init__(self, openai_config=None):
+        """
+        Initialize the AI summarizer.
+        
+        Args:
+            openai_config: Optional custom OpenAI configuration
+        """
+        self.openai_config = openai_config or settings.get_openai_config()
+        self.client = openai.OpenAI(api_key=self.openai_config['api_key'])
         self.chat_model = ChatOpenAI(
-            api_key=settings.OPENAI_API_KEY,
-            model=settings.OPENAI_MODEL,
+            api_key=self.openai_config['api_key'],
+            model=self.openai_config['model'],
             temperature=0.3
         )
     
@@ -125,7 +131,7 @@ JSON format:
         
         try:
             response = self.client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
+                model=self.openai_config['model'],
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}

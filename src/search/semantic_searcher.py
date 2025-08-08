@@ -17,14 +17,16 @@ class SemanticSearcher:
     using vector similarity and additional filtering options.
     """
     
-    def __init__(self, vector_storage: VectorStorage):
+    def __init__(self, vector_storage: VectorStorage, similarity_threshold: float = None):
         """
         Initialize the semantic searcher.
         
         Args:
             vector_storage: Vector storage instance for search operations
+            similarity_threshold: Optional similarity threshold for search results
         """
         self.vector_storage = vector_storage
+        self.similarity_threshold = similarity_threshold or settings.SIMILARITY_THRESHOLD
     
     def search(self, 
                query: str, 
@@ -46,7 +48,7 @@ class SemanticSearcher:
         if limit is None:
             limit = settings.DEFAULT_SEARCH_LIMIT
         if min_score is None:
-            min_score = settings.SIMILARITY_THRESHOLD
+            min_score = self.similarity_threshold
         
         try:
             logger.info(f"Performing semantic search: '{query}'")
