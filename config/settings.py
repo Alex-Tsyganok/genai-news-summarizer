@@ -32,8 +32,13 @@ class Settings:
     MIN_CONTENT_LENGTH: int = int(os.getenv("MIN_CONTENT_LENGTH", "300"))  # Minimum length for AI analysis
     
     # Summarization Configuration
-    MAX_SUMMARY_LENGTH: int = int(os.getenv("MAX_SUMMARY_LENGTH", "200"))
+    MAX_SUMMARY_LENGTH: int = int(os.getenv("MAX_SUMMARY_LENGTH", "1000"))
     MAX_TOPICS: int = int(os.getenv("MAX_TOPICS", "5"))
+    # Summary size specification (sentences and word limit)
+    SUMMARY_SENTENCES: str = os.getenv("SUMMARY_SENTENCES", "5-10 sentences")
+    SUMMARY_WORD_LIMIT: int = int(os.getenv("SUMMARY_WORD_LIMIT", "100"))
+    # Chunk size (in characters) for iterative summarization of long articles
+    SUMMARY_CHUNK_SIZE: int = int(os.getenv("SUMMARY_CHUNK_SIZE", "8000"))
     
     # Search Configuration
     DEFAULT_SEARCH_LIMIT: int = int(os.getenv("DEFAULT_SEARCH_LIMIT", "10"))

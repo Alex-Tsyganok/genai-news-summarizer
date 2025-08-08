@@ -168,39 +168,124 @@ class NewsExtractor:
             for element in elements:
                 text = element.get_text().strip()
                 if text and len(text) > 10:  # Reasonable title length
+                    snippet = text[:100].replace("\n", " ")
+                    logger.debug(f"Title extracted via selector '{selector}'; length={len(text)}; snippet={snippet!r}")
                     return text
         
+        logger.debug("Title extraction failed with default selectors")
         return None
     
     def _extract_body(self, soup: BeautifulSoup) -> Optional[str]:
-        """Extract body text from HTML soup."""
-        # Remove unwanted elements
-        for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+        """Extract body text from HTML soup.
+
+        Strategy:
+        1) Remove non-content elements (scripts, navs, etc.).
+        2) Find candidate containers via common selectors and pick the densest by
+           paragraph count and text length.
+        3) If none found, scan all div/section/article for densest content.
+        4) Aggregate text from paragraphs and relevant headings in DOM order.
+        5) Fallback to concatenating all <p> tags when needed.
+        """
+
+        # 1) Remove clearly unwanted elements early
+        for element in soup.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside', 'form', 'button', 'noscript']):
             element.decompose()
-        
-        # Try various content selectors
-        selectors = [
+
+        def score_element(el) -> tuple[int, int]:
+            ps = el.find_all('p')
+            text = ' '.join(p.get_text(separator=' ', strip=True) for p in ps)
+            return (len(ps), len(text))
+
+        def pick_best(candidates) -> Optional[BeautifulSoup]:
+            best = None
+            best_score = (0, 0)
+            for el in candidates:
+                pcount, tlen = score_element(el)
+                # Require some minimum content to avoid navs
+                if pcount >= 3 or tlen > 800:
+                    if (pcount, tlen) > best_score:
+                        best = el
+                        best_score = (pcount, tlen)
+            return best
+
+        # 2) Gather candidates using common selectors
+        selector_list = [
             'article',
+            'main',
+            '[role="main"]',
             '[class*="content"]',
             '[class*="article"]',
             '[class*="post"]',
             '[class*="story"]',
-            'main',
             '.entry-content',
-            '#content'
+            '#content',
+            '.article-body',
+            '.article__content',
+            '.content__article-body',
         ]
-        
-        for selector in selectors:
-            elements = soup.select(selector)
-            for element in elements:
-                text = element.get_text().strip()
-                if text and len(text) > 200:  # Reasonable article length
-                    return text
-        
-        # Fallback: get all paragraph text
+        candidates = []
+        seen = set()
+        for sel in selector_list:
+            for el in soup.select(sel):
+                # Deduplicate by object id
+                key = id(el)
+                if key not in seen:
+                    candidates.append(el)
+                    seen.add(key)
+
+        best = pick_best(candidates)
+        if best is not None:
+            pcount, tlen = score_element(best)
+            logger.debug(
+                f"Body container selected from selectors: <{best.name} class={best.get('class')} id={best.get('id')}>; "
+                f"paragraphs={pcount}; text_len={tlen}"
+            )
+
+        # 3) If nothing from selectors, scan structural blocks for densest content
+        if best is None:
+            block_candidates = soup.find_all(['article', 'section', 'div'])
+            best = pick_best(block_candidates)
+            if best is not None:
+                pcount, tlen = score_element(best)
+                logger.debug(
+                    f"Body container selected from structural scan: <{best.name} class={best.get('class')} id={best.get('id')}>; "
+                    f"paragraphs={pcount}; text_len={tlen}"
+                )
+
+        # 4) Aggregate text in order from the chosen container
+        def aggregate(el) -> str:
+            lines = []
+            for node in el.descendants:
+                if getattr(node, 'name', None) in ('p', 'li'):
+                    txt = node.get_text(separator=' ', strip=True)
+                    if txt:
+                        lines.append(txt)
+                elif getattr(node, 'name', None) in ('h1', 'h2', 'h3'):
+                    # Keep important headings to preserve structure
+                    txt = node.get_text(separator=' ', strip=True)
+                    if txt:
+                        lines.append(txt)
+            text = '\n'.join(lines)
+            # Normalize whitespace
+            text = re.sub(r'\s+\n', '\n', text)
+            text = re.sub(r'\n{3,}', '\n\n', text)
+            return text.strip()
+
+        if best is not None:
+            text = aggregate(best)
+            if text and len(text) > 200:
+                logger.debug(
+                    f"Aggregated body from selected container; length={len(text)}; approx_lines={text.count('\n') + 1}"
+                )
+                return text
+
+        # 5) Fallback: concatenate all paragraph text in document order
         paragraphs = soup.find_all('p')
-        text = ' '.join([p.get_text().strip() for p in paragraphs])
-        
+        text = '\n'.join([p.get_text(separator=' ', strip=True) for p in paragraphs])
+        text = re.sub(r'\n{3,}', '\n\n', text).strip()
+        logger.debug(
+            f"Fallback paragraph concatenation used; paragraphs={len(paragraphs)}; length={len(text)}"
+        )
         return text if len(text) > 200 else None
     
     def _clean_text(self, text: str) -> str:

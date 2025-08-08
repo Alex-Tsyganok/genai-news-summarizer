@@ -94,16 +94,10 @@ class AIsummarizer:
             article: Article to prepare
             
         Returns:
-            Cleaned and truncated content
+            Cleaned content (no aggressive truncation)
         """
-        # Combine title and body
+        # Combine title and body (do not aggressively truncate here)
         content = f"Title: {article.title}\n\nContent: {article.body}"
-        
-        # Truncate if too long (GPT token limits) - More aggressive for cost savings
-        max_chars = 2000  # Reduced from 8000 for cost savings
-        if len(content) > max_chars:
-            content = content[:max_chars] + "..."
-        
         return content
     
     def _generate_summary_and_topics(self, content: str) -> dict:
@@ -116,44 +110,162 @@ class AIsummarizer:
         Returns:
             Dictionary with summary and topics
         """
-        system_prompt = """You are a news analyst. Extract:
+        # If content fits within one chunk, summarize directly; otherwise, do iterative reduction
+        chunk_size = getattr(settings, "SUMMARY_CHUNK_SIZE", 8000)
+        if len(content) <= chunk_size:
+            system_prompt = f"""You are a news analyst. Extract:
 
-1. Summary (1-2 sentences, max 100 words)  
+1. Summary ({settings.SUMMARY_SENTENCES}, max {settings.SUMMARY_WORD_LIMIT} words)
 2. Topics (2-4 keywords)
 
-JSON format:
-{
+Return strict JSON only:
+{{
   "summary": "Brief summary...",
   "topics": ["topic1", "topic2"]
-}"""
+}}"""
 
-        user_prompt = f"Analyze:\n\n{content[:2000]}..."  # Limit input size
-        
+            user_prompt = f"Analyze the following article and return JSON only.\n\n{content[:chunk_size]}"
+
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.openai_config['model'],
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=350  # Increased from 200 to accommodate 5-10 sentence summaries
+                )
+
+                content_text = response.choices[0].message.content
+
+                # Parse JSON response
+                result = json.loads(content_text)
+                return result
+
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSON response: {e}")
+                # Try to extract summary and topics from malformed response
+                return self._parse_malformed_response(content_text)
+
+            except Exception as e:
+                logger.error(f"OpenAI API call failed: {e}")
+                raise
+
+        # Iterative summarization path for long content
         try:
-            response = self.client.chat.completions.create(
-                model=self.openai_config['model'],
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.3,
-                max_tokens=200  # Reduced from 500 to save costs
-            )
-            
-            content_text = response.choices[0].message.content
-            
-            # Parse JSON response
-            result = json.loads(content_text)
-            return result
-            
+            chunks = self._chunk_text(content, chunk_size=chunk_size, overlap=200)
+            logger.debug(f"Summarizing long article in {len(chunks)} chunks (size ~{chunk_size})")
+            partial_summaries: List[str] = []
+            for idx, chunk in enumerate(chunks, start=1):
+                try:
+                    s = self._summarize_chunk(chunk, idx, len(chunks))
+                    partial_summaries.append(s)
+                except Exception as ce:
+                    logger.warning(f"Chunk {idx}/{len(chunks)} summarization failed: {ce}")
+
+            if not partial_summaries:
+                raise RuntimeError("All chunk summarizations failed")
+
+            # Combine partial summaries into final summary and topics
+            combined = self._finalize_summary_and_topics(partial_summaries)
+            return combined
         except json.JSONDecodeError as e:
-            logger.warning(f"Failed to parse JSON response: {e}")
-            # Try to extract summary and topics from malformed response
-            return self._parse_malformed_response(content_text)
-        
+            logger.warning(f"Failed to parse JSON response during combine: {e}")
+            # Try to recover from malformed final response
+            return self._parse_malformed_response(str(e))
         except Exception as e:
-            logger.error(f"OpenAI API call failed: {e}")
+            logger.error(f"Iterative summarization failed: {e}")
             raise
+
+    def _chunk_text(self, text: str, chunk_size: int, overlap: int = 200) -> List[str]:
+        """Split text into overlapping character chunks, trying to break at paragraph boundaries.
+
+        Args:
+            text: Full article text (including title/body)
+            chunk_size: Desired max characters per chunk
+            overlap: Characters of overlap between consecutive chunks
+
+        Returns:
+            List of chunk strings
+        """
+        if chunk_size <= 0:
+            return [text]
+
+        # Prefer splitting by paragraph markers to reduce mid-sentence cuts
+        paragraphs = re.split(r"\n\s*\n", text)
+        chunks: List[str] = []
+        current = ""
+        for p in paragraphs:
+            candidate = (current + "\n\n" + p).strip() if current else p
+            if len(candidate) <= chunk_size:
+                current = candidate
+            else:
+                if current:
+                    chunks.append(current)
+                # If a single paragraph is too large, hard-split it
+                while len(p) > chunk_size:
+                    chunks.append(p[:chunk_size])
+                    p = p[chunk_size - overlap :]
+                current = p
+        if current:
+            chunks.append(current)
+
+        # Add overlap between chunks to preserve context
+        if overlap > 0 and len(chunks) > 1:
+            with_overlap: List[str] = []
+            for i, ch in enumerate(chunks):
+                prefix = chunks[i - 1][-overlap:] + "\n" if i > 0 else ""
+                with_overlap.append(prefix + ch)
+            chunks = with_overlap
+
+        return chunks
+
+    def _summarize_chunk(self, chunk: str, idx: int, total: int) -> str:
+        """Summarize a single chunk using configurable summary settings."""
+        system_prompt = (
+            f"You are a helpful news analyst. Summarize the given chunk into {settings.SUMMARY_SENTENCES} "
+            f"(max {settings.SUMMARY_WORD_LIMIT} words) capturing only the essential facts. Return plain text."
+        )
+        user_prompt = f"Chunk {idx}/{total}:\n\n{chunk}"
+        response = self.client.chat.completions.create(
+            model=self.openai_config['model'],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.3,
+            max_tokens=300,  # Increased from 180 to accommodate longer summaries
+        )
+        text = response.choices[0].message.content or ""
+        return text.strip()
+
+    def _finalize_summary_and_topics(self, partial_summaries: List[str]) -> dict:
+        """Reduce partial chunk summaries into final summary and topics (JSON)."""
+        system_prompt = f"""You are a news analyst. Given multiple partial summaries of a single article,
+produce a final result with:
+1) Summary: {settings.SUMMARY_SENTENCES}, max {settings.SUMMARY_WORD_LIMIT} words
+2) Topics: 2-4 keywords
+
+Return strict JSON only:
+{{
+  "summary": "...",
+  "topics": ["..."]
+}}
+"""
+        joined = "\n- " + "\n- ".join(s for s in partial_summaries if s)
+        user_prompt = f"Combine the following partial summaries into final JSON.\n{joined}"
+        response = self.client.chat.completions.create(
+            model=self.openai_config['model'],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,
+            max_tokens=400,  # Increased from 220 to accommodate longer final summaries
+        )
+        content_text = response.choices[0].message.content or "{}"
+        return json.loads(content_text)
     
     def _parse_malformed_response(self, response_text: str) -> dict:
         """

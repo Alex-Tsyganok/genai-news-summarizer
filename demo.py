@@ -81,7 +81,7 @@ def demonstrate_pipeline():
         print_subsection("4. Article Processing Demo")
         
         # Ask how many articles to process
-        max_articles = min(len(sample_data), 3)  # Limit to 3 for demo
+        max_articles = len(sample_data)  # Allow processing all available articles
         num_to_process = input(f"\n📝 How many articles to process? (1-{max_articles}, or 'all'): ").strip()
         
         if num_to_process.lower() == 'all':
@@ -90,7 +90,7 @@ def demonstrate_pipeline():
             try:
                 articles_to_process = min(int(num_to_process), max_articles)
             except ValueError:
-                articles_to_process = 1
+                articles_to_process = 5  # Default to 5 instead of 1
         
         print(f"\n📰 Processing {articles_to_process} sample articles...")
         
