@@ -7,6 +7,13 @@ from typing import Dict, Any
 class Settings:
     """Application settings and configuration."""
     
+    # Supported OpenAI embedding models
+    SUPPORTED_EMBEDDING_MODELS = [
+        "text-embedding-ada-002",
+        "text-embedding-3-small", 
+        "text-embedding-3-large"
+    ]
+    
     # OpenAI Configuration
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
@@ -42,7 +49,7 @@ class Settings:
     
     # Search Configuration
     DEFAULT_SEARCH_LIMIT: int = int(os.getenv("DEFAULT_SEARCH_LIMIT", "10"))
-    SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.7"))
+    SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.7"))  # Reset to 0.7 for OpenAI embeddings
     
     # Logging
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
@@ -74,6 +81,13 @@ class Settings:
         """Validate required configuration settings."""
         if not cls.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY is required")
+        
+        # Validate OpenAI embedding model
+        if cls.OPENAI_EMBEDDING_MODEL not in cls.SUPPORTED_EMBEDDING_MODELS:
+            raise ValueError(
+                f"OPENAI_EMBEDDING_MODEL '{cls.OPENAI_EMBEDDING_MODEL}' is not supported. "
+                f"Supported models: {', '.join(cls.SUPPORTED_EMBEDDING_MODELS)}"
+            )
             
         # Validate LangSmith configuration if enabled
         if cls.ENABLE_LANGSMITH:

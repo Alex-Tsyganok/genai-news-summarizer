@@ -77,7 +77,7 @@ python quick_db_view.py
 
 ### 4. 🧹 Duplicate Cleanup Tool (`simple_cleanup.py`) 🆕
 
-**Newest addition** - Remove duplicate articles from your database while preserving the latest versions.
+**Database maintenance** - Remove duplicate articles from your database while preserving the latest versions.
 
 ```bash
 cd tools
@@ -97,7 +97,7 @@ python simple_cleanup.py
 - Optimizing storage space
 - Improving search quality
 
-**Low-level access** - Direct ChromaDB exploration without custom wrappers.
+### 5. 🔍 Low-Level Database Explorer (`explore_chromadb.py`)
 
 ```bash
 cd tools

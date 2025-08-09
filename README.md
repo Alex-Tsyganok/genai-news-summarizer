@@ -160,6 +160,7 @@ This project fulfills all requirements of the **News Scraping & GenAI Integratio
 The system supports various configurations in `config/settings.py`:
 
 - **AI Models**: Choose between different OpenAI models
+- **Embedding Models**: Supported models: `text-embedding-ada-002`, `text-embedding-3-small`, `text-embedding-3-large`
 - **Vector DB**: Configure ChromaDB settings
 - **Extraction**: Customize scraping parameters
 - **Search**: Adjust similarity thresholds

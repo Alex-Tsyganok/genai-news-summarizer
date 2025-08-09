@@ -43,11 +43,29 @@ class VectorStorage:
                 )
             )
             
-            # Get or create collection
+            # OpenAI embeddings are mandatory for this system
+            if not settings.OPENAI_API_KEY:
+                raise ValueError("OPENAI_API_KEY is required - OpenAI embeddings are mandatory for this system")
+            
+            # Initialize with OpenAI embeddings
+            import chromadb.utils.embedding_functions as embedding_functions
+            
+            openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+                api_key=settings.OPENAI_API_KEY,
+                model_name=settings.OPENAI_EMBEDDING_MODEL
+            )
+            
             self.collection = self.client.get_or_create_collection(
                 name=self.config['collection_name'],
-                metadata={"description": "News articles with AI-generated summaries and topics"}
+                embedding_function=openai_ef,
+                metadata={
+                    "description": "News articles with OpenAI embeddings",
+                    "embedding_function": "openai",
+                    "embedding_model": settings.OPENAI_EMBEDDING_MODEL,
+                    "embedding_dimensions": 3072 if "3-large" in settings.OPENAI_EMBEDDING_MODEL else 1536
+                }
             )
+            logger.info(f"Initialized ChromaDB with OpenAI embeddings: {settings.OPENAI_EMBEDDING_MODEL}")
             
             logger.info(f"Initialized ChromaDB with collection: {self.config['collection_name']}")
             
@@ -354,8 +372,13 @@ class VectorStorage:
         distances = results['distances'][0]
         
         for i, (doc_id, document, metadata, distance) in enumerate(zip(ids, documents, metadatas, distances)):
-            # Convert distance to similarity score (ChromaDB uses cosine distance)
-            similarity_score = 1 - distance
+            # Convert distance to similarity score
+            # ChromaDB uses cosine distance, so similarity = 1 - distance
+            # But clamp negative values to 0 and ensure range [0, 1]
+            similarity_score = max(0.0, min(1.0, 1.0 - distance))
+            
+            # Debug: log the raw distance and calculated similarity
+            logger.debug(f"Raw distance: {distance:.4f}, Calculated similarity: {similarity_score:.4f}")
             
             # Parse topics from JSON
             topics = []
@@ -385,24 +408,107 @@ class VectorStorage:
     
     def reset_collection(self) -> bool:
         """
-        Reset the collection (delete all articles).
+        Reset the collection (delete all articles) and recreate with OpenAI embeddings.
         
         Returns:
             True if successful, False otherwise
         """
         try:
+            # Delete existing collection
             self.client.delete_collection(settings.CHROMADB_COLLECTION_NAME)
+            
+            # Recreate with OpenAI embeddings (mandatory)
+            import chromadb.utils.embedding_functions as embedding_functions
+            
+            openai_ef = embedding_functions.OpenAIEmbeddingFunction(
+                api_key=settings.OPENAI_API_KEY,
+                model_name=settings.OPENAI_EMBEDDING_MODEL
+            )
+            
             self.collection = self.client.create_collection(
                 name=settings.CHROMADB_COLLECTION_NAME,
-                metadata={"description": "News articles with AI-generated summaries and topics"}
+                embedding_function=openai_ef,
+                metadata={
+                    "description": "News articles with OpenAI embeddings",
+                    "embedding_function": "openai",
+                    "embedding_model": settings.OPENAI_EMBEDDING_MODEL,
+                    "embedding_dimensions": 3072 if "3-large" in settings.OPENAI_EMBEDDING_MODEL else 1536
+                }
             )
-            logger.info("Reset ChromaDB collection")
+            logger.info("Reset ChromaDB collection with OpenAI embeddings")
             return True
             
         except Exception as e:
             logger.error(f"Failed to reset collection: {e}")
             return False
     
+    def get_all_articles(self, limit: int = None) -> List[Dict[str, Any]]:
+        """
+        Retrieve all articles from storage without search/embedding operations.
+        
+        Args:
+            limit: Maximum number of articles to retrieve
+            
+        Returns:
+            List of article dictionaries with metadata
+        """
+        try:
+            # Get data directly without embeddings/search to avoid API calls
+            query_limit = limit if limit else 1000  # ChromaDB default max
+            
+            results = self.collection.get(
+                limit=query_limit,
+                include=['documents', 'metadatas']  # Exclude embeddings to avoid API calls
+            )
+            
+            if not results['ids']:
+                logger.info("No articles found in collection")
+                return []
+            
+            articles = []
+            for i, article_id in enumerate(results['ids']):
+                try:
+                    metadata = results['metadatas'][i] if results['metadatas'] else {}
+                    document = results['documents'][i] if results['documents'] else ''
+                    
+                    # Parse topics from JSON if needed
+                    topics = metadata.get('topics', [])
+                    if isinstance(topics, str):
+                        try:
+                            import json
+                            topics = json.loads(topics)
+                        except:
+                            topics = topics.split(',') if topics else []
+                    
+                    # Create article dictionary
+                    article_data = {
+                        'id': article_id,
+                        'title': metadata.get('title', 'Unknown Title'),
+                        'summary': metadata.get('summary', ''),
+                        'topics': topics,
+                        'source_url': metadata.get('source_url', ''),
+                        'body': metadata.get('body', ''),
+                        'extracted_at': metadata.get('extracted_at', ''),
+                        'document_text': document,
+                        # Include any additional metadata fields
+                        'meta_extraction_method': metadata.get('meta_extraction_method', ''),
+                        'meta_ai_confidence_score': metadata.get('meta_ai_confidence_score', 0),
+                        'meta_top_image': metadata.get('meta_top_image', '')
+                    }
+                    
+                    articles.append(article_data)
+                    
+                except Exception as e:
+                    logger.warning(f"Failed to parse article {article_id}: {e}")
+                    continue
+            
+            logger.info(f"Retrieved {len(articles)} articles from storage")
+            return articles
+            
+        except Exception as e:
+            logger.error(f"Failed to retrieve articles: {e}")
+            return []
+
     def remove_duplicates(self) -> Dict[str, Any]:
         """
         Remove duplicate articles based on source URL, keeping the latest version.

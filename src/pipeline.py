@@ -318,8 +318,8 @@ class NewsPipeline:
         from datetime import datetime
         
         try:
-            # Get all articles (simplified approach)
-            all_results = self.storage.search_articles("", limit=1000)
+            # Get all articles directly from storage without triggering search/embeddings
+            all_results = self.storage.get_all_articles(limit=1000)
             
             if not all_results:
                 logger.warning("No articles found to export")

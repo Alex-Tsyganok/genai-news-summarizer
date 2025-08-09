@@ -62,6 +62,14 @@ class SemanticSearcher:
                 limit=limit * 2  # Get more results for filtering
             )
             
+            logger.info(f"Found {len(raw_results)} results for query: {enhanced_query}")
+            
+            # Debug: Log scores before filtering
+            for i, result in enumerate(raw_results[:5]):
+                score = result.get('similarity_score', 0)
+                title = result.get('title', 'N/A')[:50]
+                logger.info(f"  Result {i+1}: Score={score:.3f}, Title={title}...")
+            
             # Convert to SearchResult objects
             search_results = self._convert_to_search_results(raw_results)
             
@@ -71,6 +79,8 @@ class SemanticSearcher:
                 min_score=min_score,
                 topics_filter=topics_filter
             )
+            
+            logger.info(f"After filtering with min_score={min_score}: {len(filtered_results)} results")
             
             # Limit results
             final_results = filtered_results[:limit]
