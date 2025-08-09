@@ -110,7 +110,7 @@ def main():
     
     print("\n🎉 Example completed successfully!")
     print("\nNext steps:")
-    print("- Run the Streamlit app: streamlit run src/ui/app.py")
+    print("- Run the Streamlit app: streamlit run src/ui/Home.py")
     print("- Add your own article URLs")
     print("- Experiment with different search queries")
 

@@ -76,7 +76,7 @@ python setup.py               # Dependency + environment setup
 **Pattern**: Tests skip AI components if `OPENAI_API_KEY` missing, focus on data processing logic.
 
 ### Multi-Interface Pattern
-- **Web UI**: `streamlit run src/ui/app.py` (session state management)
+- **Web UI**: `streamlit run src/ui/Home.py` (session state management)
 - **CLI**: `python cli.py add|search|stats|export` (command routing)
 - **API**: Direct pipeline imports for programmatic use
 

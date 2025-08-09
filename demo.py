@@ -241,7 +241,7 @@ def demonstrate_pipeline():
     print_section("💡 Next Steps & Usage Recommendations")
     print("""
 🌐 Web Interface:
-   streamlit run src/ui/app.py
+   streamlit run src/ui/Home.py
    
 ⌨️  Command Line:
    python cli.py add <urls>

@@ -93,7 +93,7 @@ cp .env.example .env
 **Web Interface (Recommended)**
 
 ```bash
-streamlit run src/ui/app.py
+streamlit run src/ui/Home.py
 ```
 
 **Command Line Interface**

@@ -87,7 +87,7 @@ def setup_environment():
     print("\n📋 Next steps:")
     print("1. Edit .env file and add your OpenAI API key")
     print("2. Run: python examples/basic_usage.py")
-    print("3. Start web app: streamlit run src/ui/app.py")
+    print("3. Start web app: streamlit run src/ui/Home.py")
     print("4. Or use CLI: python cli.py --help")
     
     return True
