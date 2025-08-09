@@ -262,7 +262,7 @@ def show_add_articles_page():
     st.markdown("Enter news article URLs to extract, summarize, and add to the database.")
     
     # URL input methods
-    tab1, tab2 = st.tabs(["Single URL", "Multiple URLs"])
+    tab1, tab2, tab3 = st.tabs(["Single URL", "Multiple URLs", "Sample Data"])
     
     with tab1:
         st.subheader("Add Single Article")
@@ -282,6 +282,36 @@ def show_add_articles_page():
         if st.button("Process All Articles") and urls_text:
             urls = [url.strip() for url in urls_text.split('\n') if url.strip()]
             process_multiple_urls(urls)
+
+    with tab3:
+        st.subheader("Use Sample Data")
+        st.write("Quickly try the pipeline using built-in sample article URLs.")
+
+        try:
+            import json
+            sample_path = os.path.join(_ROOT_DIR, 'data', 'sample_articles.json')
+            with open(sample_path, 'r', encoding='utf-8') as f:
+                sample = json.load(f)
+            sample_urls = [item.get('url') for item in sample if isinstance(item, dict) and item.get('url')]
+
+            total_samples = len(sample_urls)
+            if total_samples == 0:
+                st.info("No sample URLs found in data/sample_articles.json")
+            else:
+                st.caption(f"{total_samples} sample articles available")
+                default_n = 10 if total_samples >= 10 else total_samples
+                n = st.slider(
+                    "Number of sample articles to process",
+                    min_value=1,
+                    max_value=total_samples,
+                    value=default_n
+                )
+
+                if st.button("Process Sample Articles"):
+                    process_multiple_urls(sample_urls[:n])
+
+        except Exception as e:
+            st.error(f"Failed to load sample data: {e}")
     
     # Show processing results
     if st.session_state.processing_results:

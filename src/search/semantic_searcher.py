@@ -122,11 +122,17 @@ class SemanticSearcher:
             List of similar articles
         """
         try:
+            logger.info(f"Finding similar articles for url={article_url}, limit={limit}")
             # Get the reference article
             reference_article = self.vector_storage.get_article_by_url(article_url)
             if not reference_article:
                 logger.warning(f"Reference article not found: {article_url}")
                 return []
+            try:
+                ref_title = reference_article.get('title') or reference_article.get('metadata', {}).get('title', 'N/A')
+            except Exception:
+                ref_title = 'N/A'
+            logger.info(f"Reference article loaded: title='{str(ref_title)[:80]}'")
             
             # Use the article's summary and topics as query
             metadata = reference_article['metadata']
@@ -143,22 +149,33 @@ class SemanticSearcher:
                 topics_list = json.loads(topics)
                 if topics_list:
                     query_parts.extend(topics_list)
+                logger.info(f"Query parts collected: summary={'yes' if summary else 'no'}, topics_count={len(topics_list) if isinstance(topics_list, list) else 0}")
             except:
                 pass
             
             if not query_parts:
+                logger.info("No summary or topics available to build similarity query; returning empty list")
                 return []
             
             search_query = " ".join(query_parts)
+            logger.info(f"Similarity search query size: {len(search_query)} chars")
             
             # Perform search
             results = self.search(search_query, limit=limit + 1)
+            logger.info(f"Similarity raw results: {len(results)}")
             
             # Remove the reference article from results
             similar_articles = [
                 result for result in results 
                 if result.article.source_url != article_url
             ]
+            logger.info(f"Similarity results after excluding reference: {len(similar_articles)}")
+            # Log top 3 results (title + score)
+            for i, r in enumerate(similar_articles[:3], start=1):
+                try:
+                    logger.info(f"  Top{i}: score={r.score:.3f}, title='{r.article.title[:80]}'")
+                except Exception:
+                    continue
             
             return similar_articles[:limit]
             
