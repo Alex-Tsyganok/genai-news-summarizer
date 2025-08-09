@@ -38,10 +38,16 @@ def initialize_session_state():
     """Initialize Streamlit session state variables."""
     if 'pipeline' not in st.session_state:
         st.session_state.pipeline = None
+    if 'nav_page' not in st.session_state:
+        st.session_state.nav_page = "🏠 Home"
     if 'search_results' not in st.session_state:
         st.session_state.search_results = []
     if 'processing_results' not in st.session_state:
         st.session_state.processing_results = None
+    if 'refreshing_stats' not in st.session_state:
+        st.session_state.refreshing_stats = False
+    if 'last_stats_refreshed_at' not in st.session_state:
+        st.session_state.last_stats_refreshed_at = None
 
 def initialize_pipeline():
     """Initialize the pipeline with error handling."""
@@ -85,11 +91,18 @@ def main():
         st.title("📰 AI News Summarizer")
         st.markdown("---")
         
-        # Navigation
-        page = st.selectbox(
+        # Navigation (state-driven): radio list for single-click selection
+        _pages = ["🏠 Home", "📥 Add Articles", "🔍 Search Articles", "📊 Analytics", "⚙️ Settings"]
+        selected_page = st.radio(
             "Navigate to:",
-            ["🏠 Home", "📥 Add Articles", "🔍 Search Articles", "📊 Analytics", "⚙️ Settings"]
+            options=_pages,
+            index=_pages.index(st.session_state.get('nav_page', "🏠 Home"))
         )
+
+        # If user changed selection, update model and rerun immediately
+        if st.session_state.get('nav_page') != selected_page:
+            st.session_state['nav_page'] = selected_page
+            st.experimental_rerun()
         
         st.markdown("---")
         
@@ -102,30 +115,61 @@ def main():
                 st.experimental_rerun()
         else:
             st.success("✅ Pipeline Ready")
-            
-            # Quick stats
+
+            # Quick stats with refresh UX
             try:
-                stats = st.session_state.pipeline.get_statistics()
-                st.metric("Total Articles", stats.get('total_articles', 0))
-                
-                if st.button("🔄 Refresh Stats"):
-                    st.experimental_rerun()
-                    
+                is_refreshing = bool(st.session_state.get('refreshing_stats'))
+
+                # Create a placeholder so the metric appears above the button
+                metric_ph = st.empty()
+
+                # Refresh button (visually below the metric)
+                clicked = st.button(
+                    "🔄 Refresh Stats",
+                    key="btn_refresh_stats",
+                    type="primary",
+                    use_container_width=True,
+                    disabled=is_refreshing,
+                    help="Refresh collection stats"
+                )
+
+                if clicked:
+                    st.session_state.refreshing_stats = True
+                    is_refreshing = True
+
+                # Fetch stats (show spinner only when refreshing)
+                if is_refreshing:
+                    with st.spinner("Refreshing stats..."):
+                        stats = st.session_state.pipeline.get_statistics()
+                        st.session_state.last_stats_refreshed_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    st.session_state.refreshing_stats = False
+                    st.toast("Stats refreshed", icon="✅")
+                else:
+                    stats = st.session_state.pipeline.get_statistics()
+
+                # Render metric above the button via the placeholder
+                with metric_ph.container():
+                    st.metric("Total Articles", stats.get('total_articles', 0))
+
+                if st.session_state.last_stats_refreshed_at:
+                    st.caption(f"Last refreshed: {st.session_state.last_stats_refreshed_at}")
+
             except Exception as e:
                 st.error(f"Failed to get stats: {e}")
     
     # Main content area
+    current_page = st.session_state.get('nav_page')
     if st.session_state.pipeline is None:
         show_welcome_page()
-    elif page == "🏠 Home":
+    elif current_page == "🏠 Home":
         show_home_page()
-    elif page == "📥 Add Articles":
+    elif current_page == "📥 Add Articles":
         show_add_articles_page()
-    elif page == "🔍 Search Articles":
+    elif current_page == "🔍 Search Articles":
         show_search_page()
-    elif page == "📊 Analytics":
+    elif current_page == "📊 Analytics":
         show_analytics_page()
-    elif page == "⚙️ Settings":
+    elif current_page == "⚙️ Settings":
         show_settings_page()
 
 def show_welcome_page():
@@ -200,13 +244,16 @@ def show_home_page():
     with col2:
         st.subheader("🚀 Quick Actions")
         if st.button("➕ Add New Article", use_container_width=True):
-            st.switch_page("pages/add_articles.py")
+            st.session_state.nav_page = "📥 Add Articles"
+            st.experimental_rerun()
         
         if st.button("🔍 Search Articles", use_container_width=True):
-            st.switch_page("pages/search.py")
+            st.session_state.nav_page = "🔍 Search Articles"
+            st.experimental_rerun()
         
         if st.button("📊 View Analytics", use_container_width=True):
-            st.switch_page("pages/analytics.py")
+            st.session_state.nav_page = "📊 Analytics"
+            st.experimental_rerun()
 
 def show_add_articles_page():
     """Show the add articles page."""
@@ -329,9 +376,10 @@ def show_search_page():
         if trending:
             available_topics = [t['topic'] for t in trending]
             selected_topics = st.multiselect("Select topics:", available_topics)
+            min_score = st.slider("Minimum similarity score", 0.0, 1.0, float(settings.SIMILARITY_THRESHOLD), 0.01)
             
             if selected_topics and st.button("Search by Topics"):
-                perform_topic_search(selected_topics, search_limit)
+                perform_topic_search(selected_topics, search_limit, min_score)
         else:
             st.info("No topics available. Add some articles first!")
     except Exception as e:
@@ -348,10 +396,12 @@ def perform_search(query: str, limit: int):
         else:
             st.info("No articles found for this query.")
 
-def perform_topic_search(topics: list, limit: int):
-    """Perform a topic-based search."""
+def perform_topic_search(topics: list, limit: int, min_score: float | None = None):
+    """Perform a topic-based search with optional similarity threshold filtering."""
     with st.spinner(f"Searching for topics: {', '.join(topics)}..."):
         results = st.session_state.pipeline.search_by_topics(topics, limit=limit)
+        if min_score is not None:
+            results = [r for r in results if getattr(r, 'score', 0) >= float(min_score)]
         st.session_state.search_results = results
         
         if results:

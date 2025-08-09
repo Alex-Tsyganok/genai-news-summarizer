@@ -190,7 +190,7 @@ class NewsPipeline:
         logger.info(f"Pipeline processing completed: {results['successful']}/{len(urls)} successful")
         return results
     
-    def search(self, query: str, limit: int = None) -> List[SearchResult]:
+    def search(self, query: str, limit: int = None, min_score: float = None) -> List[SearchResult]:
         """
         Search for articles using natural language query.
         
@@ -202,9 +202,9 @@ class NewsPipeline:
             List of SearchResult objects
         """
         logger.info(f"Searching for: '{query}'")
-        return self.searcher.search(query, limit=limit)
+        return self.searcher.search(query, limit=limit, min_score=min_score)
     
-    def search_by_topics(self, topics: List[str], limit: int = None) -> List[SearchResult]:
+    def search_by_topics(self, topics: List[str], limit: int = None, min_score: float = None) -> List[SearchResult]:
         """
         Search articles by specific topics.
         
@@ -215,7 +215,9 @@ class NewsPipeline:
         Returns:
             List of SearchResult objects
         """
-        return self.searcher.search_by_topics(topics, limit=limit)
+        if not topics:
+            return []
+        return self.searcher.search(query=" ".join(topics), limit=limit, min_score=min_score, topics_filter=topics)
     
     def find_similar_articles(self, article_url: str, limit: int = 5) -> List[SearchResult]:
         """
