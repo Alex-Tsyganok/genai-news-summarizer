@@ -7,9 +7,12 @@ import json
 import time
 from datetime import datetime
 from dotenv import load_dotenv
-
-# Load environment variables first
 load_dotenv()
+try:
+    from config.settings import Settings
+    Settings.validate()
+except Exception:
+    pass
 
 # Add the parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

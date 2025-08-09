@@ -7,16 +7,32 @@ import time
 from datetime import datetime
 import sys
 import os
+from dotenv import load_dotenv
 
-# Add the parent directory to the path so we can import our modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Ensure both project root and src/ are on sys.path so imports work when run from any CWD
+_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+_SRC_DIR = os.path.dirname(_CURRENT_DIR)            # .../src
+_ROOT_DIR = os.path.dirname(_SRC_DIR)               # repo root
+for _p in (_ROOT_DIR, _SRC_DIR):
+    if _p and _p not in sys.path:
+        sys.path.insert(0, _p)
 
+# Load .env before importing internal modules (standard approach)
+try:
+    load_dotenv()
+except Exception:
+    pass
+
+from config.settings import Settings
 from src.pipeline import NewsPipeline
 from config import settings, logger
-import dotenv
 
-# Load environment variables
-dotenv.load_dotenv()
+# Fail fast on invalid/missing required settings (do not log secrets)
+try:
+    Settings.validate()
+except Exception as _e:
+    # Defer showing in UI; Streamlit will present error on first interaction
+    pass
 
 def initialize_session_state():
     """Initialize Streamlit session state variables."""

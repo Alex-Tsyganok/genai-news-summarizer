@@ -275,6 +275,18 @@ docs: update API documentation with new endpoints
    - Consider backwards compatibility
    - Add validation if required
 
+5. **.env and Environment Configuration Best Practices**:
+    - 12‑Factor config: Use real environment variables for prod; `.env` is for local/dev only.
+    - Load in entry points, not libraries: Avoid import-time side effects. Load `.env` in CLI, Streamlit, or app bootstrap before reading settings.
+    - Precedence: OS env > CLI flags > `.env` > code defaults. Do not override existing env by default.
+    - Single source of truth: Use a central `Settings` object with lazy load + `validate()` that fails fast with clear errors.
+    - Ship `.env.example`: Include all variables, defaults, and comments. Never commit `.env` with secrets.
+    - Namespacing and types: UPPER_SNAKE_CASE; prefix by component (e.g., `OPENAI_`, `CHROMADB_`). Parse bools robustly (`true/1/yes`), and guard int/float casts with safe fallbacks.
+    - Optional path: Allow `ENV_FILE`/`DOTENV_PATH` to point to a custom `.env`; otherwise auto-discover at project root.
+    - Secrets hygiene: Don’t log secrets; mask when displaying config. Prefer secret stores (Azure Key Vault/AWS Secrets/GCP Secret Manager) in prod/CI.
+    - Environment files: Support `.env` (dev), `.env.local` (gitignored), `.env.test` for tests. In prod, rely on env or secret store, not `.env`.
+    - Testing: Isolate with monkeypatching env; provide a reset on the `Settings` singleton (or inject settings) to avoid global state bleed.
+
 ### Common Pitfalls
 - **API Keys**: Validate at runtime, not import time
 - **Vector Storage**: URLs as IDs can collide - use hash functions

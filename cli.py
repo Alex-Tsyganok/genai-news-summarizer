@@ -60,15 +60,20 @@ Examples:
         parser.print_help()
         sys.exit(1)
     
-    # Load environment variables FIRST
+    # Load environment variables FIRST using standard approach
     load_dotenv()
     
     # Now import after environment is loaded
     from src.pipeline import NewsPipeline
     from config import logger
     
-    # Initialize pipeline
+    # Initialize pipeline (fail fast if config invalid)
     try:
+        try:
+            from config.settings import Settings
+            Settings.validate()
+        except Exception:
+            pass
         print("Initializing pipeline...")
         pipeline = NewsPipeline()
         print("✅ Pipeline initialized successfully!")
