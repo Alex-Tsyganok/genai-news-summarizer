@@ -233,10 +233,10 @@ See detailed documentation in each module:
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
+This project is for educational purposes and is not accepting external contributions.
+
+- You are welcome to fork the repository and experiment locally.
+- Issues and pull requests may not be reviewed.
 
 ## License
 
