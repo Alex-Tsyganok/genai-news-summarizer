@@ -162,12 +162,32 @@ class NewsPipeline:
                 
                 if storage_success:
                     results['successful'] += 1
-                    results['processed_articles'].append({
+                    
+                    # Collect comprehensive article information
+                    article_info = {
                         'url': url,
                         'title': article.title,
                         'summary': article.summary,
-                        'topics': article.topics
-                    })
+                        'topics': article.topics,
+                        'word_count': len(article.body.split()) if article.body else 0,
+                        'extraction_method': article.metadata.get('extraction_method', 'unknown'),
+                        'published_date': article.metadata.get('publish_date'),
+                        'source': article.metadata.get('source', 'N/A'),
+                        'author': ', '.join(article.metadata.get('authors', [])) if article.metadata.get('authors') else 'N/A'
+                    }
+                    
+                    # Add AI confidence score if available
+                    if 'confidence_score' in article.metadata:
+                        article_info['confidence_score'] = article.metadata['confidence_score']
+                    
+                    # Add AI analysis details if available
+                    if 'ai_analysis' in article.metadata:
+                        analysis = article.metadata['ai_analysis']
+                        article_info['style_score'] = analysis.get('style_score')
+                        article_info['credibility_score'] = analysis.get('credibility_score')
+                        article_info['completeness_score'] = analysis.get('completeness_score')
+                    
+                    results['processed_articles'].append(article_info)
                 else:
                     results['failed'] += 1
                     results['errors'].append({
@@ -190,7 +210,7 @@ class NewsPipeline:
         logger.info(f"Pipeline processing completed: {results['successful']}/{len(urls)} successful")
         return results
     
-    def search(self, query: str, limit: int = None, min_score: float = None) -> List[SearchResult]:
+    def search(self, query: str, limit: int = None) -> List[SearchResult]:
         """
         Search for articles using natural language query.
         
@@ -202,9 +222,9 @@ class NewsPipeline:
             List of SearchResult objects
         """
         logger.info(f"Searching for: '{query}'")
-        return self.searcher.search(query, limit=limit, min_score=min_score)
+        return self.searcher.search(query, limit=limit)
     
-    def search_by_topics(self, topics: List[str], limit: int = None, min_score: float = None) -> List[SearchResult]:
+    def search_by_topics(self, topics: List[str], limit: int = None) -> List[SearchResult]:
         """
         Search articles by specific topics.
         
@@ -215,9 +235,7 @@ class NewsPipeline:
         Returns:
             List of SearchResult objects
         """
-        if not topics:
-            return []
-        return self.searcher.search(query=" ".join(topics), limit=limit, min_score=min_score, topics_filter=topics)
+        return self.searcher.search_by_topics(topics, limit=limit)
     
     def find_similar_articles(self, article_url: str, limit: int = 5) -> List[SearchResult]:
         """

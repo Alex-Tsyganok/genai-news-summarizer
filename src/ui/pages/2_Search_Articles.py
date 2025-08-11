@@ -66,7 +66,7 @@ def show_search_results():
 
 
 def main():
-    st.set_page_config(page_title="Search Articles", page_icon="🔍")
+    st.set_page_config(page_title="🔍 Search Articles", page_icon="🔍")
     initialize_session_state()
     render_sidebar()
 

@@ -19,7 +19,7 @@ from _shared import initialize_session_state, render_sidebar
 
 
 def main():
-    st.set_page_config(page_title="Analytics", page_icon="📊")
+    st.set_page_config(page_title="📊 Analytics", page_icon="📊")
     initialize_session_state()
     render_sidebar()
 

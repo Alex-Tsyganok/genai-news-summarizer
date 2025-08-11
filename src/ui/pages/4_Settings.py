@@ -18,7 +18,7 @@ from _shared import initialize_session_state, render_sidebar, settings
 
 
 def main():
-    st.set_page_config(page_title="Settings", page_icon="⚙️")
+    st.set_page_config(page_title="⚙️ Settings", page_icon="⚙️")
     initialize_session_state()
     render_sidebar()
 

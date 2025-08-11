@@ -73,8 +73,8 @@ def show_dashboard():
 def main():
     """Main Streamlit application."""
     st.set_page_config(
-        page_title="AI News Summarizer",
-        page_icon="📰",
+        page_title="🏠 Home",
+        page_icon="🏠",
         layout="wide",
         initial_sidebar_state="expanded"
     )
