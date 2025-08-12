@@ -68,6 +68,7 @@ def show_dashboard():
         st.markdown("""
         - **Add Articles**: Process new news URLs
         - **Search**: Find articles by content or topics  
+        - **AI Agent**: Chat with AI about your articles
         - **Analytics**: View trends and export data
         - **Settings**: Configure pipeline and check health
         """)

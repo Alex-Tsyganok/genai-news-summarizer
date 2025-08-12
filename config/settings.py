@@ -72,7 +72,7 @@ class Settings:
 
         # Search Configuration
         self.DEFAULT_SEARCH_LIMIT = self._get_int("DEFAULT_SEARCH_LIMIT", 10)
-        self.SIMILARITY_THRESHOLD = self._get_float("SIMILARITY_THRESHOLD", 0.3)
+        self.SIMILARITY_THRESHOLD = self._get_float("SIMILARITY_THRESHOLD", 0.55)
 
         # Logging
         self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
