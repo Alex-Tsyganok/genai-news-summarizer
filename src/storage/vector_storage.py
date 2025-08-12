@@ -373,9 +373,13 @@ class VectorStorage:
         
         for i, (doc_id, document, metadata, distance) in enumerate(zip(ids, documents, metadatas, distances)):
             # Convert distance to similarity score
-            # ChromaDB uses cosine distance, so similarity = 1 - distance
-            # But clamp negative values to 0 and ensure range [0, 1]
-            similarity_score = max(0.0, min(1.0, 1.0 - distance))
+            # ChromaDB uses cosine distance. For cosine distance:
+            # distance = 0 means identical vectors (similarity = 1.0)
+            # distance = 1 means orthogonal vectors (similarity = 0.0)
+            # distance = 2 means opposite vectors (similarity = -1.0)
+            # Formula: cosine_similarity = 1 - (cosine_distance / 2)
+            # This maps distance [0,2] to similarity [1,0]
+            similarity_score = max(0.0, min(1.0, 1.0 - (distance / 2.0)))
             
             # Debug: log the raw distance and calculated similarity
             logger.debug(f"Raw distance: {distance:.4f}, Calculated similarity: {similarity_score:.4f}")

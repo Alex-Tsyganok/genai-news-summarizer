@@ -57,7 +57,7 @@ Examples:
     agent_parser.add_argument('query', help='Query to ask the agent')
     agent_parser.add_argument('--model', default='gpt-3.5-turbo', help='AI model to use')
     agent_parser.add_argument('--max-results', type=int, default=10, help='Maximum results to retrieve')
-    agent_parser.add_argument('--threshold', type=float, default=0.7, help='Similarity threshold (0.0-1.0)')
+    agent_parser.add_argument('--threshold', type=float, default=0.3, help='Similarity threshold (0.0-1.0)')
     
     # Reset command
     reset_parser = subparsers.add_parser('reset', help='Reset all data')

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Type, TypeVar
 
 from langchain_core.runnables import RunnableConfig, ensure_config
+from config import settings
 
 
 @dataclass(kw_only=True)
@@ -45,7 +46,7 @@ class RetrievalConfiguration:
     )
 
     similarity_threshold: float = field(
-        default=0.7,
+        default_factory=lambda: settings.SIMILARITY_THRESHOLD,
         metadata={"description": "Minimum similarity score for retrieved documents."},
     )
 
