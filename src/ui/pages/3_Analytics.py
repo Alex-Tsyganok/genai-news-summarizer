@@ -43,6 +43,9 @@ def main():
         trending = st.session_state.pipeline.get_trending_topics(limit=15)
         if trending:
             df = pd.DataFrame(trending)
+            # Ensure data types are consistent for Arrow compatibility
+            df['topic'] = df['topic'].astype(str)
+            df['count'] = df['count'].astype(int)
             st.bar_chart(df.set_index('topic')['count'])
             st.dataframe(df, hide_index=True)
         else:

@@ -50,7 +50,12 @@ def show_dashboard():
         try:
             trending = st.session_state.pipeline.get_trending_topics(limit=10)
             if trending:
-                df = pd.DataFrame(trending)
+                # Ensure proper data types for Arrow serialization
+                trending_data = [
+                    {'Topic': str(item['topic']), 'Count': int(item['count'])}
+                    for item in trending
+                ]
+                df = pd.DataFrame(trending_data)
                 st.dataframe(df, hide_index=True)
             else:
                 st.info("No trending topics available. Add some articles first!")

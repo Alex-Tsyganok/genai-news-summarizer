@@ -19,6 +19,8 @@ def main():
 Examples:
   python cli.py add https://example.com/news-article
   python cli.py search "artificial intelligence" --limit 5
+  python cli.py agent "What are the latest trends in AI?" --model gpt-4
+  python cli.py agent "Tell me about renewable energy" --max-results 5 --threshold 0.8
   python cli.py stats
   python cli.py export --format json
   python cli.py export my_articles --format csv
@@ -49,6 +51,13 @@ Examples:
     
     # Health check command
     health_parser = subparsers.add_parser('health', help='Check pipeline health')
+    
+    # Agent command
+    agent_parser = subparsers.add_parser('agent', help='Run AI agent for interactive chat')
+    agent_parser.add_argument('query', help='Query to ask the agent')
+    agent_parser.add_argument('--model', default='gpt-3.5-turbo', help='AI model to use')
+    agent_parser.add_argument('--max-results', type=int, default=10, help='Maximum results to retrieve')
+    agent_parser.add_argument('--threshold', type=float, default=0.7, help='Similarity threshold (0.0-1.0)')
     
     # Reset command
     reset_parser = subparsers.add_parser('reset', help='Reset all data')
@@ -93,6 +102,9 @@ Examples:
             cmd_export(pipeline, args.filename, args.format, args.console)
         elif args.command == 'health':
             cmd_health(pipeline)
+        elif args.command == 'agent':
+            import asyncio
+            asyncio.run(cmd_agent(pipeline, args.query, args.model, args.max_results, args.threshold))
         elif args.command == 'reset':
             cmd_reset(pipeline, args.confirm)
         else:
@@ -210,6 +222,74 @@ def cmd_health(pipeline):
     
     overall_status = "Healthy" if health['overall'] else "Unhealthy"
     print(f"\n🏥 Overall Status: {overall_status}")
+
+async def cmd_agent(pipeline, query: str, model: str, max_results: int, threshold: float):
+    """Agent command - run AI agent with query."""
+    print(f"🤖 Running AI agent...")
+    print(f"   Query: {query}")
+    print(f"   Model: {model}")
+    print(f"   Max results: {max_results}")
+    print(f"   Similarity threshold: {threshold}")
+    
+    try:
+        # Import agent components
+        from src.agents import agent_graph
+        from langchain_core.messages import HumanMessage
+        from langchain_core.runnables import RunnableConfig
+        
+        # Create configuration
+        config = RunnableConfig(configurable={
+            "response_model": model,
+            "query_model": model,
+            "max_results": max_results,
+            "similarity_threshold": threshold,
+        })
+        
+        # Prepare input
+        input_data = {
+            "messages": [HumanMessage(content=query)]
+        }
+        
+        print("\n🔍 Processing query...")
+        
+        # Run the agent
+        result = await agent_graph.ainvoke(input_data, config)
+        
+        # Display results
+        print("\n" + "="*80)
+        print("🤖 AI Agent Response:")
+        print("="*80)
+        
+        # Show generated queries
+        if "queries" in result and result["queries"]:
+            print(f"\n🔍 Search Queries Generated:")
+            for i, q in enumerate(result["queries"], 1):
+                print(f"  {i}. {q}")
+        
+        # Show retrieved documents
+        if "retrieved_docs" in result and result["retrieved_docs"]:
+            print(f"\n📚 Retrieved Documents ({len(result['retrieved_docs'])}):")
+            for i, doc in enumerate(result["retrieved_docs"][:5], 1):  # Show first 5
+                print(f"  {i}. {doc.metadata.get('title', 'Untitled')}")
+                print(f"     {doc.page_content[:100]}...")
+                if i < len(result["retrieved_docs"]):
+                    print()
+        
+        # Show AI response
+        if "messages" in result:
+            ai_messages = [msg for msg in result["messages"] if msg.type == "ai"]
+            if ai_messages:
+                print(f"\n💬 Agent Response:")
+                print(ai_messages[-1].content)
+        
+        print("\n" + "="*80)
+        print("✅ Agent processing completed!")
+        
+    except Exception as e:
+        print(f"❌ Agent error: {e}")
+        import traceback
+        print("\nDebug traceback:")
+        traceback.print_exc()
 
 def cmd_reset(pipeline, confirm: bool):
     """Reset command."""

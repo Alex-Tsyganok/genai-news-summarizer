@@ -40,13 +40,13 @@ def main():
 
     st.subheader("🔧 Current Configuration")
     config_data = {
-        "OpenAI Model": settings.OPENAI_MODEL,
-        "Embedding Model": settings.OPENAI_EMBEDDING_MODEL,
-        "ChromaDB Directory": settings.CHROMADB_PERSIST_DIRECTORY,
-        "Collection Name": settings.CHROMADB_COLLECTION_NAME,
-        "Max Summary Length": settings.MAX_SUMMARY_LENGTH,
-        "Max Topics": settings.MAX_TOPICS,
-        "Similarity Threshold": settings.SIMILARITY_THRESHOLD,
+        "OpenAI Model": str(settings.OPENAI_MODEL),
+        "Embedding Model": str(settings.OPENAI_EMBEDDING_MODEL),
+        "ChromaDB Directory": str(settings.CHROMADB_PERSIST_DIRECTORY),
+        "Collection Name": str(settings.CHROMADB_COLLECTION_NAME),
+        "Max Summary Length": str(settings.MAX_SUMMARY_LENGTH),
+        "Max Topics": str(settings.MAX_TOPICS),
+        "Similarity Threshold": str(settings.SIMILARITY_THRESHOLD),
     }
     df = pd.DataFrame(list(config_data.items()), columns=["Setting", "Value"])
     st.dataframe(df, hide_index=True)
