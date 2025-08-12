@@ -26,8 +26,14 @@ def make_retriever(
     from langchain_chroma import Chroma
     from langchain_openai import OpenAIEmbeddings
     from config.settings import settings
+    from config import logger
     
     configuration = RetrievalConfiguration.from_runnable_config(config)
+    
+    # Debug: Log configuration
+    logger.info(f"🔍 Agent Retriever Configuration:")
+    logger.info(f"   Max results: {configuration.max_results}")
+    logger.info(f"   Similarity threshold: {configuration.similarity_threshold}")
     
     # Get ChromaDB configuration
     chromadb_config = settings.get_chromadb_config()
@@ -60,6 +66,12 @@ def make_retriever(
     if hasattr(configuration, 'similarity_threshold') and configuration.similarity_threshold:
         search_kwargs["score_threshold"] = configuration.similarity_threshold
         search_type = "similarity_score_threshold"
+        logger.info(f"   Using similarity_score_threshold search with threshold: {configuration.similarity_threshold}")
+    else:
+        logger.info(f"   Using similarity search without threshold")
+    
+    logger.info(f"   Search type: {search_type}")
+    logger.info(f"   Search kwargs: {search_kwargs}")
     
     # Create and yield the native LangChain retriever
     retriever = vstore.as_retriever(
@@ -67,4 +79,29 @@ def make_retriever(
         search_kwargs=search_kwargs
     )
     
-    yield retriever
+    # Wrap the retriever to add debug logging
+    class DebugRetriever:
+        def __init__(self, base_retriever):
+            self.base_retriever = base_retriever
+        
+        def invoke(self, query, config=None):
+            logger.info(f"🔍 Agent Vector Search Query: '{query}'")
+            results = self.base_retriever.invoke(query, config)
+            logger.info(f"📊 Retrieved {len(results)} documents:")
+            
+            for i, doc in enumerate(results):
+                title = doc.metadata.get('title', 'No title')[:60]
+                similarity = getattr(doc, 'similarity', 'N/A')
+                logger.info(f"   {i+1}. {title}... (similarity: {similarity})")
+                
+                # Log snippet of content for relevance check
+                content_snippet = doc.page_content[:100].replace('\n', ' ')
+                logger.info(f"      Content: {content_snippet}...")
+            
+            return results
+        
+        def __getattr__(self, name):
+            # Delegate all other attributes to the base retriever
+            return getattr(self.base_retriever, name)
+    
+    yield DebugRetriever(retriever)

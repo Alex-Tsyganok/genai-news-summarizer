@@ -7,11 +7,21 @@ import os
 import json
 from dotenv import load_dotenv
 
+# Load environment variables first, before any other imports
+load_dotenv()
+
 # Add the parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from config.settings import Settings
+from src.pipeline import NewsPipeline
+from config import logger
+
 def main():
     """Main CLI entry point."""
+    # Initialize settings
+    settings = Settings()
+    
     parser = argparse.ArgumentParser(
         description="AI News Summarizer - CLI Interface",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -57,7 +67,7 @@ Examples:
     agent_parser.add_argument('query', help='Query to ask the agent')
     agent_parser.add_argument('--model', default='gpt-3.5-turbo', help='AI model to use')
     agent_parser.add_argument('--max-results', type=int, default=10, help='Maximum results to retrieve')
-    agent_parser.add_argument('--threshold', type=float, default=0.3, help='Similarity threshold (0.0-1.0)')
+    agent_parser.add_argument('--threshold', type=float, default=settings.SIMILARITY_THRESHOLD, help='Similarity threshold (0.0-1.0)')
     
     # Reset command
     reset_parser = subparsers.add_parser('reset', help='Reset all data')
@@ -69,20 +79,8 @@ Examples:
         parser.print_help()
         sys.exit(1)
     
-    # Load environment variables FIRST using standard approach
-    load_dotenv()
-    
-    # Now import after environment is loaded
-    from src.pipeline import NewsPipeline
-    from config import logger
-    
     # Initialize pipeline (fail fast if config invalid)
     try:
-        try:
-            from config.settings import Settings
-            Settings.validate()
-        except Exception:
-            pass
         print("Initializing pipeline...")
         pipeline = NewsPipeline()
         print("✅ Pipeline initialized successfully!")
