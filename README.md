@@ -92,7 +92,7 @@ User Query → Query Generation → Document Retrieval → Response Synthesis �
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Alex-Tsyganok/genai-news-summarizer
 cd genai-news-summarizer
 
 # Create and activate virtual environment (RECOMMENDED)
@@ -228,76 +228,21 @@ genai-news-summarizer/
 ├── 📄 setup.py                   # Environment setup script
 ├── 📄 cli.py                     # Command-line interface
 ├── 📄 demo.py                    # Interactive demonstration
+├── 📄 FEATURES.md                # Feature documentation
+├── 📄 LICENSE                    # MIT License
 │
 ├── 📁 src/                       # Core application code
 │   ├── 📄 pipeline.py            # Main orchestration pipeline
 │   ├── 📄 models.py              # Data models and structures
+│   ├── � __init__.py            # Package initialization
+│   ├── 📁 agents/                # LangGraph AI agent modules
 │   ├── 📁 extractors/            # News extraction modules
+│   ├── 📁 scoring/               # AI confidence scoring modules
 │   ├── 📁 summarizers/           # AI summarization modules
 │   ├── 📁 storage/               # Vector database operations
 │   ├── 📁 search/                # Semantic search implementation
-│   └── 📁 ui/                    # Streamlit web interface
-```
-
-### LangGraph AI Agent Architecture
-
-The system includes an intelligent conversational agent built with LangGraph for natural language interaction:
-
-```text
-User Query → Query Generation → Document Retrieval → Response Synthesis → Formatted Output
-     ↓              ↓                ↓                    ↓               ↓
-   Direct/LLM    ChromaDB     LangChain Vector    OpenAI ChatGPT    CLI Display
-   Refinement    Similarity    Store Integration   Response Gen     with Sources
-
-┌─────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ Query Generation│    │ Document Retrieval│   │Response Synthesis│    │ Formatted Output│
-│                 │    │                  │    │                  │    │                 │
-│ • Single-turn   │───▶│ • ChromaDB Vector│───▶│ • Document Context│───▶│ • Source Citations│
-│ • Multi-turn LLM│    │ • Similarity Score│   │ • LLM Synthesis  │    │ • Structured Format│
-│ • Context Aware │    │ • Threshold Filter│   │ • Error Handling │    │ • Professional Tone│
-└─────────────────┘    └──────────────────┘    └──────────────────┘    └─────────────────┘
-```
-
-**Agent Features:**
-
-- 🧠 **Intelligent Query Processing**: LLM-powered query refinement for multi-turn conversations
-- 📚 **Contextual Document Retrieval**: Semantic search with configurable similarity thresholds
-- 🔗 **Source-Aware Responses**: Citations and references to specific news articles
-- 💬 **Conversational Interface**: Natural language interaction via CLI
-- ⚡ **Async Performance**: Full async/await pattern for optimal responsiveness
-- 🛡️ **Error Resilience**: Graceful fallbacks and comprehensive error handling
-
-### Core Technology Stack
-```
-
-### LangGraph AI Agent Architecture
-
-The system includes an intelligent conversational agent built with LangGraph for natural language interaction:
-
-```text
-User Query → Query Generation → Document Retrieval → Response Synthesis → Formatted Output
-     ↓              ↓                ↓                    ↓               ↓
-   Direct/LLM    ChromaDB     LangChain Vector    OpenAI ChatGPT    CLI Display
-   Refinement    Similarity    Store Integration   Response Gen     with Sources
-
-┌─────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ Query Generation│    │ Document Retrieval│   │Response Synthesis│    │ Formatted Output│
-│                 │    │                  │    │                  │    │                 │
-│ • Single-turn   │───▶│ • ChromaDB Vector│───▶│ • Document Context│───▶│ • Source Citations│
-│ • Multi-turn LLM│    │ • Similarity Score│   │ • LLM Synthesis  │    │ • Structured Format│
-│ • Context Aware │    │ • Threshold Filter│   │ • Error Handling │    │ • Professional Tone│
-└─────────────────┘    └──────────────────┘    └──────────────────┘    └─────────────────┘
-```
-
-**Agent Features:**
-- 🧠 **Intelligent Query Processing**: LLM-powered query refinement for multi-turn conversations
-- 📚 **Contextual Document Retrieval**: Semantic search with configurable similarity thresholds
-- 🔗 **Source-Aware Responses**: Citations and references to specific news articles
-- 💬 **Conversational Interface**: Natural language interaction via CLI
-- ⚡ **Async Performance**: Full async/await pattern for optimal responsiveness
-- 🛡️ **Error Resilience**: Graceful fallbacks and comprehensive error handling
-
-### Technology Stack
+│   ├── 📁 ui/                    # Streamlit web interface
+│   └── � utils/                 # Utility functions
 │
 ├── 📁 config/                    # Configuration and settings
 │   ├── 📄 settings.py            # Environment variables and config
@@ -310,34 +255,11 @@ User Query → Query Generation → Document Retrieval → Response Synthesis �
 │   └── 📄 explore_chromadb.py    # Direct ChromaDB access
 │
 ├── 📁 tests/                     # Test suite
+├── 📁 test_data/                 # Test data files
 ├── 📁 examples/                  # Usage examples
 ├── 📁 data/                      # Database and sample data
-└── 📁 docs/                      # Additional documentation
-```
-
-## API Reference
-
-See detailed documentation in each module:
-
-- `src/extractors/` - Article extraction and parsing
-- `src/summarizers/` - AI summarization and topic detection
-- `src/storage/` - Vector database operations
-- `src/search/` - Semantic search implementation
-
-## Contributing
-
-This project is for educational purposes and is not accepting external contributions.
-
-- You are welcome to fork the repository and experiment locally.
-- Issues and pull requests may not be reviewed.
-
-## License
-
-MIT License - see LICENSE file for details│
-├── 📁 tests/                     # Test suite
-├── 📁 examples/                  # Usage examples
-├── 📁 data/                      # Database and sample data
-└── 📁 docs/                      # Additional documentation
+├── 📁 docs/                      # Research documentation
+└── 📁 logs/                      # Application logs
 ```
 
 ## API Reference
