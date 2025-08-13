@@ -9,13 +9,17 @@ from pathlib import Path
 
 def run_command(command, description=""):
     """Run a shell command and handle errors."""
-    print(f"🔧 {description}...")
+    print(f"Running: {description}...")
     try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        print(f"✅ {description} completed successfully")
+        # Set environment to handle Unicode properly on Windows
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        
+        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True, env=env)
+        print(f"Success: {description} completed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} failed: {e.stderr}")
+        print(f"Error: {description} failed: {e.stderr}")
         return False
 
 def check_python_version():

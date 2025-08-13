@@ -7,6 +7,9 @@ import unittest
 from unittest.mock import Mock, patch
 from dotenv import load_dotenv
 
+# Load environment variables first
+load_dotenv()
+
 # Add the parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -180,11 +183,8 @@ class TestModels(unittest.TestCase):
 
 def run_tests():
     """Run all tests."""
-    print("🧪 Running AI News Summarizer Tests")
+    print("Running AI News Summarizer Tests")
     print("=" * 50)
-    
-    # Load environment variables
-    load_dotenv()
     
     # Create test suite
     test_classes = [
@@ -206,19 +206,19 @@ def run_tests():
     
     # Print summary
     print("\n" + "=" * 50)
-    print("📊 Test Summary:")
+    print("Test Summary:")
     print(f"Tests run: {result.testsRun}")
     print(f"Failures: {len(result.failures)}")
     print(f"Errors: {len(result.errors)}")
     print(f"Success rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
     
     if result.failures:
-        print("\n❌ Failures:")
+        print("\nFailures:")
         for test, failure in result.failures:
             print(f"  - {test}: {failure}")
     
     if result.errors:
-        print("\n🔥 Errors:")
+        print("\nErrors:")
         for test, error in result.errors:
             print(f"  - {test}: {error}")
     
