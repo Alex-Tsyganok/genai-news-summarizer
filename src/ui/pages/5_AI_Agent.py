@@ -44,13 +44,24 @@ def run_agent_sync(query: str, model: str, max_results: int, threshold: float):
         from src.agents import agent_graph
         from langchain_core.messages import HumanMessage
         from langchain_core.runnables import RunnableConfig
+        import hashlib
         
-        # Create configuration
+        # Generate a unique thread ID for this session
+        # Use Streamlit session state to maintain thread consistency across queries
+        if 'agent_thread_id' not in st.session_state:
+            # Create a consistent thread ID based on session
+            session_info = f"{st.session_state.get('session_id', 'default')}_{hash(str(st.session_state))}"
+            st.session_state.agent_thread_id = hashlib.md5(session_info.encode()).hexdigest()[:12]
+        
+        thread_id = st.session_state.agent_thread_id
+        
+        # Create configuration with thread support
         config = RunnableConfig(configurable={
             "response_model": model,
             "query_model": model,
             "max_results": max_results,
             "similarity_threshold": threshold,
+            "thread_id": thread_id  # Unique thread for this session
         })
         
         # Prepare input
@@ -207,12 +218,21 @@ def main():
         return
 
     st.title("🤖 AI Agent Chat")
-    st.markdown("Ask the AI agent questions about your news articles. It will search for relevant content and provide comprehensive answers.")
+    st.markdown("Ask the AI agent questions about your news articles. It will search for relevant content and provide comprehensive answers with conversation memory.")
 
     # Configuration sidebar
     with st.sidebar:
         st.markdown("---")
         st.subheader("🤖 Agent Configuration")
+        
+        # Debug info
+        with st.expander("🐛 Debug Info", expanded=False):
+            if 'agent_thread_id' in st.session_state:
+                st.write(f"**Thread ID:** `{st.session_state.agent_thread_id}`")
+            else:
+                st.write("**Thread ID:** Not yet generated")
+            st.write(f"**Session Keys:** {len(st.session_state.keys())}")
+            st.write(f"**Messages:** {len(st.session_state.agent_messages)}")
         
         st.session_state.agent_model = st.selectbox(
             "AI Model:",

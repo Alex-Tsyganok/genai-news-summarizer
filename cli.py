@@ -235,12 +235,13 @@ async def cmd_agent(pipeline, query: str, model: str, max_results: int, threshol
         from langchain_core.messages import HumanMessage
         from langchain_core.runnables import RunnableConfig
         
-        # Create configuration
+        # Create configuration with thread support
         config = RunnableConfig(configurable={
             "response_model": model,
             "query_model": model,
             "max_results": max_results,
             "similarity_threshold": threshold,
+            "thread_id": "cli_session"  # Default thread for CLI usage
         })
         
         # Prepare input
@@ -250,7 +251,7 @@ async def cmd_agent(pipeline, query: str, model: str, max_results: int, threshol
         
         print("\n🔍 Processing query...")
         
-        # Run the agent
+        # Run the agent with thread support
         result = await agent_graph.ainvoke(input_data, config)
         
         # Display results

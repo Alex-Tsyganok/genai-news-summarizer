@@ -14,6 +14,7 @@ from langchain_core.messages import BaseMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
 from langchain_core.runnables import RunnableConfig
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import StateGraph
 
 from .agent_state import AgentInputState, AgentState
@@ -37,7 +38,7 @@ async def generate_query(
     This function analyzes the messages in the state and generates an appropriate
     search query. For the first message, it uses the user's input directly.
     For subsequent messages, it uses a language model to generate a refined query
-    based on the conversation context.
+    based on the conversation history managed by LangGraph's checkpointer.
 
     Args:
         state (AgentState): The current state containing messages and other information.
@@ -49,7 +50,7 @@ async def generate_query(
     Behavior:
         - If there's only one message (first user input), it uses that as the query.
         - For subsequent messages, it uses a language model to generate a refined query
-          based on the conversation history and context.
+          based on the conversation history automatically managed by LangGraph.
     """
     from langchain_openai import ChatOpenAI
     
@@ -60,6 +61,7 @@ async def generate_query(
         return {"queries": [human_input]}
     else:
         # Multi-turn conversation - use LLM to generate refined query
+        # LangGraph's checkpointer automatically manages conversation state
         configuration = RetrievalConfiguration.from_runnable_config(config)
         
         # Initialize the language model for query generation
@@ -69,10 +71,10 @@ async def generate_query(
             max_tokens=150,   # Concise query generation
         )
         
-        # Create conversation context
+        # Build conversation context from state messages
         conversation_context = "\n".join([
             f"{'User' if i % 2 == 0 else 'Assistant'}: {msg.content}"
-            for i, msg in enumerate(messages)
+            for i, msg in enumerate(messages[:-1])  # Exclude current message
         ])
         
         # Create the query generation prompt
@@ -88,7 +90,9 @@ Based on the conversation history, generate a focused search query that will hel
 
 Return only the search query, no additional text or explanation."""),
             ("human", """Conversation History:
-{conversation}
+{chat_history}
+
+Current User Question: {current_question}
 
 Generate a search query to find relevant news articles for the user's latest question.""")
         ])
@@ -97,7 +101,8 @@ Generate a search query to find relevant news articles for the user's latest que
             # Generate the refined query
             chain = query_prompt | llm
             response = await chain.ainvoke({
-                "conversation": conversation_context
+                "chat_history": conversation_context,
+                "current_question": str(messages[-1].content)
             })
             
             # Extract the query from the response
@@ -187,27 +192,28 @@ async def respond(
     response_prompt = ChatPromptTemplate.from_messages([
         ("system", configuration.response_system_prompt + """
 
-Based on the retrieved news articles provided below, generate a comprehensive and informative response to the user's question. Your response should:
+You are a helpful conversational AI assistant with access to retrieved news articles. Your role is to:
 
-1. **Synthesize Information**: Combine insights from multiple sources when relevant
-2. **Cite Sources**: Reference specific articles by title when mentioning facts
-3. **Be Objective**: Present information factually without bias
-4. **Structure Clearly**: Use clear sections and bullet points when helpful
-5. **Acknowledge Limitations**: If the retrieved documents don't fully answer the question, say so
+1. **Answer Conversational Questions**: Use conversation history to answer questions about previous topics or user information
+2. **Provide News Information**: Use retrieved articles when the question relates to current events or news topics
+3. **Balance Both Sources**: Prioritize conversation context for personal questions and document content for news questions
 
-**Important Guidelines:**
-- Only use information from the provided documents
-- If no relevant documents are available, explain this clearly
-- Provide specific details and examples from the articles
-- Maintain a helpful, informative tone
-- Include URLs when referencing specific articles
+**Guidelines:**
+- For questions about the conversation (e.g., "What is my name?", "What did we discuss?"), use the conversation history
+- For questions about news, current events, or topics in articles, use the retrieved documents
+- If retrieved documents are relevant, cite sources with titles and URLs
+- Be helpful, accurate, and conversational
+- If neither source has the answer, explain this clearly
 """),
-        ("human", """User Question: {query}
+        ("human", """Current Question: {query}
+
+Conversation History:
+{conversation_history}
 
 Retrieved Articles:
 {context}
 
-Please provide a comprehensive response based on the above information.""")
+Please provide a helpful response using both conversation context and retrieved articles as appropriate.""")
     ])
     
     # Generate the response
@@ -215,10 +221,22 @@ Please provide a comprehensive response based on the above information.""")
         # Create the chain
         chain = response_prompt | llm
         
+        # Format conversation history for context (excluding the current message)
+        conversation_history = ""
+        if len(state.messages) > 1:
+            for msg in state.messages[:-1]:  # Exclude the current message
+                if hasattr(msg, 'type'):
+                    role = "User" if msg.type == "human" else "Assistant"
+                    conversation_history += f"{role}: {msg.content}\n"
+        
+        if not conversation_history:
+            conversation_history = "No previous conversation history."
+        
         # Invoke the chain with the context
         response = await chain.ainvoke({
             "query": user_query,
-            "context": document_context
+            "context": document_context,
+            "conversation_history": conversation_history
         })
         
         # Extract the content from the response
@@ -239,7 +257,10 @@ Please provide a comprehensive response based on the above information.""")
         return {"messages": [error_response]}
 
 
-# Define a new graph (It's just a pipe)
+# Define a new graph with checkpointer for conversation memory
+
+# Initialize the checkpointer for in-memory conversation persistence
+checkpointer = InMemorySaver()
 
 builder = StateGraph(AgentState, input_schema=AgentInputState)
 
@@ -250,10 +271,15 @@ builder.add_edge("__start__", "generate_query")
 builder.add_edge("generate_query", "retrieve")
 builder.add_edge("retrieve", "respond")
 
-# Finally, we compile it!
-# This compiles it into a graph you can invoke and deploy.
+# Compile with checkpointer for automatic conversation memory management
 agent_graph = builder.compile(
+    checkpointer=checkpointer,
     interrupt_before=[],  # if you want to update the state before calling the tools
     interrupt_after=[],
 )
 agent_graph.name = "NewsAgent"
+
+
+def get_checkpointer():
+    """Return the checkpointer instance for external access."""
+    return checkpointer
