@@ -13,11 +13,18 @@ from typing import Dict, List, Any, Optional
 
 # Add parent directory to path for imports
 import os
-sys.path.append('..')
-sys.path.append('../src')
+import sys
+from dotenv import load_dotenv
+
+# Get the parent directory (project root)
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
+
+# Load environment variables
+load_dotenv(os.path.join(parent_dir, '.env'))
 
 # Set ChromaDB path for tools directory
-os.environ.setdefault('CHROMADB_PERSIST_DIRECTORY', '../data/chromadb')
+os.environ.setdefault('CHROMADB_PERSIST_DIRECTORY', os.path.join(parent_dir, 'data', 'chromadb'))
 
 from src.storage.vector_storage import VectorStorage
 from config import settings, logger
