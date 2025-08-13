@@ -60,6 +60,13 @@ def initialize_session_state():
 # --- Pipeline orchestration -------------------------------------------------
 def initialize_pipeline() -> Optional[NewsPipeline]:
     """Initialize the pipeline with health checks and UI feedback."""
+    
+    # First, reload environment variables to catch any recent .env changes
+    try:
+        load_dotenv(override=True)  # Force reload of .env file
+    except Exception:
+        pass
+    
     try:
         # Validate required settings but don't expose secrets
         try:
@@ -69,7 +76,9 @@ def initialize_pipeline() -> Optional[NewsPipeline]:
             pass
 
         if not settings.OPENAI_API_KEY:
+            st.error("🚨 **CRITICAL ERROR: OpenAI API Key Missing!**")
             st.error("⚠️ OpenAI API key not found. Please set OPENAI_API_KEY in your environment variables or add it to a .env file.")
+            st.info("💡 **Quick Fix:** Uncomment the OPENAI_API_KEY line in your .env file")
             return None
 
         with st.spinner("Initializing AI News Pipeline..."):
@@ -87,13 +96,25 @@ def initialize_pipeline() -> Optional[NewsPipeline]:
             return pipeline
 
     except Exception as e:
-        st.error(f"❌ Failed to initialize pipeline: {e}")
-        if "API key" in str(e).lower() or "openai" in str(e).lower():
+        st.error(f"❌ **Pipeline Initialization Failed:** {e}")
+        
+        # Provide specific guidance based on error type
+        error_msg = str(e).lower()
+        if "api key" in error_msg or "openai" in error_msg:
+            st.error("🔑 **API Key Issue Detected**")
             st.info("💡 **API Key Setup Options:**")
             st.markdown("""
             - **Option 1**: Set environment variable: `OPENAI_API_KEY=your_key_here`
             - **Option 2**: Create a `.env` file in the project root with: `OPENAI_API_KEY=your_key_here`
+            - **Option 3**: Make sure the OPENAI_API_KEY line in .env is not commented out (no # at the start)
             """)
+        elif "connection" in error_msg or "network" in error_msg:
+            st.error("🌐 **Network Issue Detected**")
+            st.info("Check your internet connection and try again.")
+        else:
+            st.error("🔧 **General Setup Issue**")
+            st.info("Check the error message above and ensure all dependencies are installed correctly.")
+        
         return None
 
 
@@ -111,8 +132,15 @@ def render_sidebar() -> bool:
 
         if st.session_state.pipeline is None:
             if st.button("Initialize Pipeline"):
-                st.session_state.pipeline = initialize_pipeline()
-                st.rerun()
+                # Clear any previous error messages
+                with st.container():
+                    pipeline_result = initialize_pipeline()
+                    if pipeline_result is not None:
+                        st.session_state.pipeline = pipeline_result
+                        st.rerun()
+                    else:
+                        # Ensure error is visible by adding extra spacing
+                        st.error("**❌ Pipeline initialization failed!** Please check the error messages above and fix the issues before trying again.")
             return False
 
         # Pipeline ready path
