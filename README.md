@@ -101,6 +101,8 @@ python -m venv venv
 # Activate virtual environment
 # Windows:
 .\venv\Scripts\activate
+# If you get execution policy errors on Windows, run:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 # macOS/Linux:
 source venv/bin/activate
 
