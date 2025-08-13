@@ -191,40 +191,12 @@ class SemanticSearcher:
             limit: Maximum number of topics to return
             
         Returns:
-            List of trending topics with counts
+            List of trending topics with counts and percentages
         """
         try:
-            # This is a simplified implementation
-            # In a real system, you might analyze recent articles
-            
-            # Get recent articles (simplified approach)
-            recent_results = self.vector_storage.search_articles(
-                "news today recent", 
-                limit=100
-            )
-            
-            # Count topic frequencies
-            topic_counts = {}
-            for result in recent_results:
-                metadata = result.get('metadata', {})
-                topics_str = metadata.get('topics', '[]')
-                
-                try:
-                    import json
-                    topics = json.loads(topics_str)
-                    for topic in topics:
-                        if isinstance(topic, str) and len(topic) > 2:
-                            topic_counts[topic] = topic_counts.get(topic, 0) + 1
-                except:
-                    continue
-            
-            # Sort by frequency
-            trending_topics = [
-                {'topic': topic, 'count': count}
-                for topic, count in sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
-            ]
-            
-            return trending_topics[:limit]
+            logger.info(f"Getting trending topics from vector storage (limit={limit})")
+            # Use the vector storage method for more efficient topic extraction
+            return self.vector_storage.get_trending_topics(limit=limit)
             
         except Exception as e:
             logger.error(f"Failed to get trending topics: {e}")

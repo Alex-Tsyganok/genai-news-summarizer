@@ -571,3 +571,70 @@ class VectorStorage:
         except Exception as e:
             logger.error(f"Failed to remove duplicates: {e}")
             return {'error': str(e)}
+    
+    def get_trending_topics(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Extract trending topics from articles in the collection.
+        
+        Args:
+            limit: Maximum number of topics to return
+            
+        Returns:
+            List of topics with counts, sorted by frequency
+        """
+        try:
+            logger.info("Getting trending topics from collection")
+            
+            # Get all articles to analyze their topics
+            all_articles = self.collection.get(
+                include=['metadatas']
+            )
+            
+            if not all_articles['metadatas']:
+                logger.warning("No articles found in collection")
+                return []
+            
+            # Count topic frequencies
+            topic_counts = {}
+            total_articles = len(all_articles['metadatas'])
+            
+            for metadata in all_articles['metadatas']:
+                if 'topics' in metadata:
+                    topics_str = metadata['topics']
+                    try:
+                        # Parse topics from JSON string
+                        if isinstance(topics_str, str):
+                            topics = json.loads(topics_str)
+                        elif isinstance(topics_str, list):
+                            topics = topics_str
+                        else:
+                            continue
+                            
+                        # Count each topic
+                        for topic in topics:
+                            if isinstance(topic, str) and topic.strip():
+                                topic_clean = topic.strip().lower()
+                                topic_counts[topic_clean] = topic_counts.get(topic_clean, 0) + 1
+                                
+                    except json.JSONDecodeError:
+                        # Handle malformed JSON, skip this article
+                        continue
+            
+            # Sort topics by frequency and prepare result
+            sorted_topics = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
+            
+            trending_topics = []
+            for topic, count in sorted_topics[:limit]:
+                percentage = (count / total_articles) * 100 if total_articles > 0 else 0
+                trending_topics.append({
+                    'topic': topic.title(),  # Capitalize for display
+                    'count': count,
+                    'percentage': round(percentage, 1)
+                })
+            
+            logger.info(f"Found {len(trending_topics)} trending topics from {total_articles} articles")
+            return trending_topics
+            
+        except Exception as e:
+            logger.error(f"Failed to get trending topics: {e}")
+            return []
