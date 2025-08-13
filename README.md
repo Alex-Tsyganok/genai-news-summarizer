@@ -116,6 +116,11 @@ pip install -r requirements.txt
 # Configure environment
 cp .env.example .env
 # Edit .env and add your OpenAI API key
+
+# Optional: Configure LangSmith for AI tracing and monitoring
+# Uncomment and set LANGCHAIN_API_KEY in .env for detailed tracing:
+# LANGCHAIN_API_KEY=your_langchain_api_key_here
+# This enables comprehensive logging of AI operations for debugging and optimization
 ```
 
 ### 2. Run the Application

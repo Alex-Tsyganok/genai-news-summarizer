@@ -49,7 +49,6 @@ class Settings:
         self.LANGCHAIN_PROJECT = os.getenv("LANGCHAIN_PROJECT", "genai-news-summarizer")
         self.LANGCHAIN_ENDPOINT = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
         self.LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2", "true")
-        self.ENABLE_LANGSMITH = self._get_bool("ENABLE_LANGSMITH", False)
 
         # ChromaDB Configuration
         self.CHROMADB_PERSIST_DIRECTORY = os.getenv("CHROMADB_PERSIST_DIRECTORY", "./data/chromadb")
@@ -147,13 +146,6 @@ class Settings:
                 f"OPENAI_EMBEDDING_MODEL '{_s.OPENAI_EMBEDDING_MODEL}' is not supported. "
                 f"Supported models: {', '.join(cls.SUPPORTED_EMBEDDING_MODELS)}"
             )
-            
-        # Validate LangSmith configuration if enabled
-        if _s.ENABLE_LANGSMITH:
-            if not _s.LANGCHAIN_API_KEY:
-                raise ValueError("LANGCHAIN_API_KEY is required when ENABLE_LANGSMITH is true")
-            if not _s.LANGCHAIN_PROJECT:
-                raise ValueError("LANGCHAIN_PROJECT is required when ENABLE_LANGSMITH is true")
                 
         return True
 
